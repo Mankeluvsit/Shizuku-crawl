@@ -33,6 +33,21 @@
 - [ ] Scanner enable/disable presets
 - [ ] More network failure simulation tests
 
+## Additional recommended features not built yet
+- [ ] Real Web UI / review dashboard
+- [ ] Browser-based review actions for confirmed / reviewed / false_positive / archived
+- [ ] In-browser review note editing with writeback to review state
+- [ ] Artifact verification beyond heuristics
+- [ ] Deeper GitLab enrichment (releases, tags, assets, better metadata)
+- [ ] Deeper Codeberg enrichment (releases, tags, assets, better metadata)
+- [ ] Per-scanner runtime metrics
+- [ ] Retry count / rate-limit / failure metrics
+- [ ] Scanner presets like --github-only / --fdroid-only / --full / --quick
+- [ ] More advanced plugin system
+- [ ] Metrics dashboard / richer observability view
+- [ ] More advanced artifact/installability judgment
+
 ## Notes
 - Current repo state includes Phase 1, Phase 2, and partial Phase 3.
 - Phase 3 now includes safer CI automation, incremental reporting, broader source coverage, scanner registration plumbing, artifact-quality heuristics, fork lineage reporting, broader scanner test coverage, and shared retry/backoff behavior for network scanners.
+- The generated apps.html report exists, but it is a static report and not the planned real Web UI.
