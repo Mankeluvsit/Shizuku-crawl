@@ -131,7 +131,7 @@ The built-in review dashboard provides:
 
 - search/filter over discovered apps
 - detail view with evidence, scanner, quality, and lineage hints
-- status updates in-browser
+- one-click status actions for `confirmed`, `reviewed`, `false_positive`, and `archived`
 - note editing in-browser
 - writeback to `cache/review_state.json`
 

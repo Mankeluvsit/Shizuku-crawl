@@ -2,7 +2,7 @@ from pathlib import Path
 
 from app_crawler.cache import Cache
 from app_crawler.models import AppResult
-from app_crawler.webui import _load_apps_for_ui, _save_review_update
+from app_crawler.webui import HTML, _load_apps_for_ui, _save_review_update
 
 
 def test_save_review_update_persists_review_state(tmp_path: Path):
@@ -24,3 +24,10 @@ def test_load_apps_for_ui_applies_saved_review_state(tmp_path: Path):
     assert apps[0]['review_notes'] == 'done'
     assert apps[0]['reviewed_by'] == 'adam'
     assert apps[0]['identity_key'] == app.identity_key_str()
+
+
+def test_webui_contains_quick_review_action_buttons():
+    assert 'Mark confirmed' in HTML
+    assert 'Mark reviewed' in HTML
+    assert 'Mark false_positive' in HTML
+    assert 'Mark archived' in HTML

@@ -31,14 +31,14 @@
 - [x] Web UI / review dashboard
 
 ## Additional recommended features not built yet
-- [ ] Browser-based review actions for confirmed / reviewed / false_positive / archived
+- [x] Browser-based review actions for confirmed / reviewed / false_positive / archived
 - [x] In-browser review note editing with writeback to review state
 - [ ] Artifact verification beyond heuristics
 - [ ] Deeper GitLab enrichment (releases, tags, assets, better metadata)
 - [ ] Deeper Codeberg enrichment (releases, tags, assets, better metadata)
-- [ ] Per-scanner runtime metrics
+- [x] Per-scanner runtime metrics
 - [ ] Retry count / rate-limit / failure metrics
-- [ ] Scanner presets like --github-only / --fdroid-only / --full / --quick
+- [x] Scanner presets like --github-only / --fdroid-only / --full / --quick
 - [ ] More advanced plugin system
 - [ ] Metrics dashboard / richer observability view
 - [ ] More advanced artifact/installability judgment

@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 import json
-from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import urlparse
 
 from .cache import Cache
 from .config import AppConfig
-from .models import AppResult, ReviewState
+from .models import ReviewState
 
 
 HTML = """<!doctype html>
@@ -30,6 +29,7 @@ HTML = """<!doctype html>
     select, input, button, textarea { font: inherit; padding: 8px; }
     pre { white-space: pre-wrap; word-break: break-word; background: #f7f7f7; padding: 12px; }
     .row { margin-bottom: 12px; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
   </style>
 </head>
 <body>
@@ -86,6 +86,23 @@ function renderList() {
   });
 }
 
+async function saveReview(app, statusOverride=null) {
+  const payload = {
+    identity_key: app.identity_key,
+    status: statusOverride || document.getElementById('status').value,
+    review_notes: document.getElementById('notes').value,
+    reviewed_by: document.getElementById('reviewedBy').value,
+  };
+  const res = await fetch('/api/review', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const out = await res.json();
+  document.getElementById('saveStatus').textContent = out.message || 'Saved';
+  await loadApps();
+}
+
 function renderDetail(app) {
   selected = app;
   const detail = document.getElementById('detail');
@@ -97,6 +114,14 @@ function renderDetail(app) {
     <div class='row'><strong>Artifact quality:</strong> ${escapeHtml(app.release_info.quality_label || 'unknown')}</div>
     <div class='row'><strong>Fork lineage:</strong> ${escapeHtml(app.fork_lineage.parent_full_name || '')}</div>
     <div class='row'><strong>Evidence:</strong><pre>${escapeHtml(JSON.stringify(app.evidence, null, 2))}</pre></div>
+    <div class='row'>
+      <div class='actions'>
+        <button id='confirmBtn'>Mark confirmed</button>
+        <button id='reviewedBtn'>Mark reviewed</button>
+        <button id='falseBtn'>Mark false_positive</button>
+        <button id='archiveBtn'>Mark archived</button>
+      </div>
+    </div>
     <div class='row'>
       <label>Status</label><br>
       <select id='status'>
@@ -114,22 +139,11 @@ function renderDetail(app) {
     <div class='row'><button id='saveBtn'>Save review</button></div>
     <div class='row muted' id='saveStatus'></div>
   `;
-  document.getElementById('saveBtn').onclick = async () => {
-    const payload = {
-      identity_key: app.identity_key,
-      status: document.getElementById('status').value,
-      review_notes: document.getElementById('notes').value,
-      reviewed_by: document.getElementById('reviewedBy').value,
-    };
-    const res = await fetch('/api/review', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const out = await res.json();
-    document.getElementById('saveStatus').textContent = out.message || 'Saved';
-    await loadApps();
-  };
+  document.getElementById('saveBtn').onclick = async () => saveReview(app);
+  document.getElementById('confirmBtn').onclick = async () => saveReview(app, 'confirmed');
+  document.getElementById('reviewedBtn').onclick = async () => saveReview(app, 'reviewed');
+  document.getElementById('falseBtn').onclick = async () => saveReview(app, 'false_positive');
+  document.getElementById('archiveBtn').onclick = async () => saveReview(app, 'archived');
 }
 
 function escapeHtml(s) {

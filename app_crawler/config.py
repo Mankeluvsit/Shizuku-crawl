@@ -20,13 +20,13 @@ class AppConfig:
     no_cache: bool
     incremental: bool
     preset: str
-    webui: bool = False
-    webui_host: str = "127.0.0.1"
-    webui_port: int = 8765
-    process_count: int = 1
-    recent_days: int = 90
-    log_level: str = "INFO"
-    rules_dir: Path = Path("rules")
+    webui: bool
+    webui_host: str
+    webui_port: int
+    process_count: int
+    recent_days: int
+    log_level: str
+    rules_dir: Path
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
