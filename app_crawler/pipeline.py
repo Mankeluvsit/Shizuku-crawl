@@ -16,6 +16,8 @@ from .scanners.github_code import GithubCodeScanner
 from .scanners.github_meta import GithubMetaScanner
 from .scanners.github_releases import GithubReleasesScanner
 from .scanners.github_forks import GithubForksScanner
+from .scanners.gitlab import GitLabScanner
+from .scanners.codeberg import CodebergScanner
 from .scoring import score_apps
 
 
@@ -38,6 +40,8 @@ def _scan_apps(config: AppConfig) -> list[AppResult]:
     scanners = [
         FDroidScanner("https://f-droid.org/repo/index.xml"),
         FDroidScanner("https://apt.izzysoft.de/fdroid/repo/index.xml"),
+        GitLabScanner(),
+        CodebergScanner(),
     ]
 
     if config.github_auth:

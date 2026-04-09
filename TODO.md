@@ -14,19 +14,21 @@
 - [x] HTML report with filters
 - [x] CSV / JSON / Markdown / stats / diff outputs
 - [x] Package-id parser fix for quoted applicationId syntax
+- [x] Phase 3: automated PR mode
+- [x] Phase 3: incremental scan mode
+- [x] GitLab scanner
+- [x] Codeberg scanner
 
 ## In progress
-- [ ] Phase 3: automated PR mode
-- [ ] Phase 3: incremental scan mode
+- [ ] Plugin scanner foundation
 
 ## Next up
-- [ ] GitLab scanner
-- [ ] Codeberg scanner
-- [ ] Plugin scanner foundation
 - [ ] Stronger artifact verification
 - [ ] Fork lineage analysis
 - [ ] More scanner tests
+- [ ] Better retry/backoff controls
+- [ ] GitLab/Codeberg enrichment improvements
 
 ## Notes
-- Current repo state includes Phase 1 and Phase 2.
-- Phase 3 is starting with safer CI automation and incremental reporting behavior.
+- Current repo state includes Phase 1, Phase 2, and partial Phase 3.
+- Phase 3 now includes safer CI automation, incremental reporting, and broader source coverage.

@@ -1,6 +1,6 @@
 # App Crawler (Refactored Python Edition)
 
-A Python crawler for discovering Android apps and repositories that use **Shizuku** or related integrations. It scans F-Droid-style indexes and GitHub, merges and scores results, persists review state, and generates reports that can be used locally or through **GitHub Actions**.
+A Python crawler for discovering Android apps and repositories that use **Shizuku** or related integrations. It scans F-Droid-style indexes, GitHub, GitLab, and Codeberg, merges and scores results, persists review state, and generates reports that can be used locally or through **GitHub Actions**.
 
 This version is structured as a maintainable Python package rather than a single-purpose script.
 
@@ -12,6 +12,8 @@ The crawler can:
 
 - scan F-Droid-compatible indexes
 - scan GitHub repositories and code for likely Shizuku use
+- scan GitLab public projects for Shizuku-related metadata
+- scan Codeberg public repositories for Shizuku-related metadata
 - merge duplicate results deterministically
 - score results by confidence and usefulness using rules
 - persist review state across runs
