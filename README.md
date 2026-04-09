@@ -27,6 +27,7 @@ The crawler can:
   - `scan_stats.json`
   - `scan_diff.json`
 - optionally generate **incremental reports** that contain only new or changed entries compared with the prior cached run
+- apply artifact-quality heuristics to release assets such as APK/AAB presence, split-vs-universal hints, and checksum/signature hints
 
 ---
 
@@ -90,6 +91,19 @@ python main.py . --json --csv --html
 ```bash
 pytest -q
 ```
+
+---
+
+## Artifact verification hints
+
+Release assets are now annotated with simple quality heuristics:
+
+- whether an `.apk` or `.aab` exists
+- whether a filename looks like a split APK or a universal APK
+- whether checksum/signature style files are present in release assets
+- a compact quality label shown in outputs
+
+These are heuristics for review, not cryptographic validation.
 
 ---
 

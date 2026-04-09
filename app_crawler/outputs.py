@@ -19,6 +19,8 @@ def entry_to_markdown(app: AppResult) -> str:
     extra.append(f"status: {app.status}")
     if app.release_info.release_url:
         extra.append(f"[release]({app.release_info.release_url})")
+    if app.release_info.quality_label and app.release_info.quality_label != 'unknown':
+        extra.append(f"artifact-quality: {app.release_info.quality_label}")
     if app.evidence:
         ev = app.evidence[0]
         snippet = ev.detail or ev.reason
@@ -92,7 +94,12 @@ def write_csv(path: Path, apps: list[AppResult]) -> None:
         "status",
         "release_url",
         "release_tag",
+        "artifact_quality",
         "apk_assets",
+        "aab_assets",
+        "universal_apk_assets",
+        "split_apk_assets",
+        "checksum_assets",
         "evidence",
     ]
     with path.open("w", encoding="utf-8", newline="") as fh:
@@ -114,7 +121,12 @@ def write_csv(path: Path, apps: list[AppResult]) -> None:
                     "status": app.status,
                     "release_url": app.release_info.release_url or "",
                     "release_tag": app.release_info.release_tag or "",
+                    "artifact_quality": app.release_info.quality_label,
                     "apk_assets": ", ".join(app.release_info.apk_assets),
+                    "aab_assets": ", ".join(app.release_info.aab_assets),
+                    "universal_apk_assets": ", ".join(app.release_info.universal_apk_assets),
+                    "split_apk_assets": ", ".join(app.release_info.split_apk_assets),
+                    "checksum_assets": ", ".join(app.release_info.checksum_assets),
                     "evidence": (app.evidence[0].detail or app.evidence[0].reason) if app.evidence else "",
                 }
             )
@@ -127,6 +139,7 @@ def write_html(path: Path, apps: list[AppResult]) -> None:
         release = app.release_info.release_url or ""
         evidence = (app.evidence[0].detail or app.evidence[0].reason) if app.evidence else ""
         apk_assets = ", ".join(app.release_info.apk_assets)
+        quality = app.release_info.quality_label
         rows.append(
             "<tr "
             f"data-name='{html.escape(app.name.lower())}' "
@@ -140,6 +153,7 @@ def write_html(path: Path, apps: list[AppResult]) -> None:
             f"<td>{html.escape(app.status)}</td>"
             f"<td>{'yes' if (app.has_downloads or app.release_info.has_downloads) else 'no'}</td>"
             f"<td>{html.escape(app.release_info.release_tag or '')}</td>"
+            f"<td>{html.escape(quality)}</td>"
             f"<td>{html.escape(apk_assets)}</td>"
             f"<td>{html.escape(evidence[:120])}</td>"
             + (f"<td><a href='{html.escape(release)}'>release</a></td>" if release else "<td></td>")
@@ -196,6 +210,7 @@ def write_html(path: Path, apps: list[AppResult]) -> None:
         <th>Status</th>
         <th>Downloads</th>
         <th>Release tag</th>
+        <th>Artifact quality</th>
         <th>APK assets</th>
         <th>Evidence</th>
         <th>Release</th>
@@ -240,6 +255,11 @@ def write_stats(path: Path, apps: list[AppResult]) -> None:
         "total": len(apps),
         "with_downloads": sum(1 for a in apps if a.has_downloads or a.release_info.has_downloads),
         "with_apk_assets": sum(1 for a in apps if a.release_info.apk_assets),
+        "with_checksum_assets": sum(1 for a in apps if a.release_info.checksum_assets),
+        "quality_labels": {
+            label: sum(1 for a in apps if a.release_info.quality_label == label)
+            for label in sorted({a.release_info.quality_label for a in apps} | {'none'})
+        },
         "scanner_counts": {
             scanner: sum(1 for a in apps if a.scanner == scanner)
             for scanner in sorted({a.scanner for a in apps})

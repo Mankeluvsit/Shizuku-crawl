@@ -32,6 +32,11 @@ class ReleaseInfo:
     release_tag: str | None = None
     release_published_at: str | None = None
     apk_assets: list[str] = field(default_factory=list)
+    aab_assets: list[str] = field(default_factory=list)
+    universal_apk_assets: list[str] = field(default_factory=list)
+    split_apk_assets: list[str] = field(default_factory=list)
+    checksum_assets: list[str] = field(default_factory=list)
+    quality_label: str = "unknown"
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -44,6 +49,11 @@ class ReleaseInfo:
             release_tag=data.get("release_tag"),
             release_published_at=data.get("release_published_at"),
             apk_assets=list(data.get("apk_assets", [])),
+            aab_assets=list(data.get("aab_assets", [])),
+            universal_apk_assets=list(data.get("universal_apk_assets", [])),
+            split_apk_assets=list(data.get("split_apk_assets", [])),
+            checksum_assets=list(data.get("checksum_assets", [])),
+            quality_label=str(data.get("quality_label", "unknown")),
         )
 
 

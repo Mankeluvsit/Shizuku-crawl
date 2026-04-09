@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 import requests
 
 from ..models import AppResult, MatchEvidence, ReleaseInfo, SourceAttribution
+from ..release_assets import classify_release_assets
 from .base import BaseScanner
 
 
@@ -66,13 +67,12 @@ class GithubMetaScanner(BaseScanner):
             return ReleaseInfo()
         data = response.json()
         assets = data.get("assets", [])
-        apk_assets = [asset.get("name", "") for asset in assets if asset.get("name", "").lower().endswith((".apk", ".aab"))]
-        return ReleaseInfo(
-            has_downloads=bool(assets),
+        asset_names = [asset.get("name", "") for asset in assets if asset.get("name")]
+        return classify_release_assets(
+            asset_names,
             release_url=data.get("html_url"),
             release_tag=data.get("tag_name"),
             release_published_at=data.get("published_at"),
-            apk_assets=apk_assets,
         )
 
 
