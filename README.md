@@ -146,6 +146,10 @@ The UI is intentionally small and framework-free so it runs anywhere Python runs
 - scanner runtime in milliseconds
 - item counts returned per scanner
 - scanner error state and last error message when a scanner fails
+- request counts
+- retry counts derived from response retry history
+- rate-limit hit counts
+- failed request counts
 
 This makes it easier to spot slow or flaky sources in CI and scheduled runs.
 

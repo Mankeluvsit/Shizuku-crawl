@@ -37,7 +37,7 @@
 - [ ] Deeper GitLab enrichment (releases, tags, assets, better metadata)
 - [ ] Deeper Codeberg enrichment (releases, tags, assets, better metadata)
 - [x] Per-scanner runtime metrics
-- [ ] Retry count / rate-limit / failure metrics
+- [x] Retry count / rate-limit / failure metrics
 - [x] Scanner presets like --github-only / --fdroid-only / --full / --quick
 - [ ] More advanced plugin system
 - [ ] Metrics dashboard / richer observability view

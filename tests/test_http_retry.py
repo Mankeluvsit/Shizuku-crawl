@@ -3,7 +3,7 @@ from threading import Thread
 
 from requests.adapters import HTTPAdapter
 
-from app_crawler.http import build_retry_session
+from app_crawler.http import build_retry_session, get_session_metrics
 
 
 def test_build_retry_session_mounts_http_adapter():
@@ -48,6 +48,9 @@ def test_retry_session_recovers_from_transient_503():
         assert response.status_code == 200
         assert response.text == 'ok'
         assert state['count'] == 2
+        metrics = get_session_metrics(session)
+        assert metrics['request_count'] == 1
+        assert metrics['retry_count'] >= 1
     finally:
         server.shutdown()
         server.server_close()
@@ -82,6 +85,10 @@ def test_retry_session_recovers_from_transient_429():
         assert response.status_code == 200
         assert response.text == 'ok'
         assert state['count'] == 2
+        metrics = get_session_metrics(session)
+        assert metrics['request_count'] == 1
+        assert metrics['retry_count'] >= 1
+        assert metrics['rate_limit_hits'] >= 1
     finally:
         server.shutdown()
         server.server_close()

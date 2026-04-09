@@ -7,6 +7,7 @@ from time import perf_counter
 
 from .cache import Cache
 from .config import AppConfig
+from .http import get_session_metrics
 from .known import filter_known_apps
 from .models import AppResult, ReviewState
 from .normalize import normalize_apps
@@ -50,6 +51,7 @@ def _scan_apps(config: AppConfig) -> tuple[list[AppResult], dict[str, dict]]:
                 "elapsed_ms": elapsed_ms,
                 "ok": True,
                 "error": None,
+                **get_session_metrics(getattr(scanner, 'session', None)),
             }
         except Exception as exc:
             elapsed_ms = round((perf_counter() - started) * 1000, 2)
@@ -59,6 +61,7 @@ def _scan_apps(config: AppConfig) -> tuple[list[AppResult], dict[str, dict]]:
                 "elapsed_ms": elapsed_ms,
                 "ok": False,
                 "error": str(exc),
+                **get_session_metrics(getattr(scanner, 'session', None)),
             }
 
     return all_apps, scanner_metrics
