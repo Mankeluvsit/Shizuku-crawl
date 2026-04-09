@@ -1,5 +1,5 @@
 from app_crawler.config import AppConfig
-from app_crawler.scanners.registry import build_scanners
+from app_crawler.scanners.registry import build_scanners, get_scanner_factories
 from pathlib import Path
 
 
@@ -38,3 +38,9 @@ def test_registry_with_github_auth_includes_github_scanners():
     assert 'github_code' in names
     assert 'github_releases' in names
     assert 'github_forks' in names
+
+
+def test_registry_factory_count_changes_with_auth():
+    without_auth = get_scanner_factories(_config(None))
+    with_auth = get_scanner_factories(_config('token'))
+    assert len(without_auth) < len(with_auth)

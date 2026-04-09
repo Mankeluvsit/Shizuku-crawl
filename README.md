@@ -29,6 +29,7 @@ The crawler can:
 - optionally generate **incremental reports** that contain only new or changed entries compared with the prior cached run
 - apply artifact-quality heuristics to release assets such as APK/AAB presence, split-vs-universal hints, and checksum/signature hints
 - annotate GitHub forks with lineage details such as parent repository, branch divergence counts, and whether the fork appears meaningfully ahead of the parent
+- include broader scanner-level tests to reduce regressions while the source coverage grows
 
 ---
 
