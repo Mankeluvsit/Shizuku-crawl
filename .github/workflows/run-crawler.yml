@@ -22,11 +22,11 @@ jobs:
 
     steps:
       - name: Check out crawler repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Optionally check out a separate list repository
         if: ${{ env.LIST_REPOSITORY != '' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ env.LIST_REPOSITORY }}
           ref: ${{ env.LIST_REF }}
