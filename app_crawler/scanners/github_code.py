@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import logging
 from datetime import UTC, datetime
+
+import requests
 
 from ..http import build_retry_session
 from ..models import AppResult, MatchEvidence, ReleaseInfo, SourceAttribution
@@ -32,14 +35,24 @@ class GithubCodeScanner(BaseScanner):
         apps: list[AppResult] = []
         for query in queries:
             evidence_strength = classify_github_code_query(query)
-            items = paginated_search_items(
-                self.session,
-                "https://api.github.com/search/code",
-                query=query,
-                per_page=20,
-                pages=self.search_pages,
-                timeout=30,
-            )
+            try:
+                items = paginated_search_items(
+                    self.session,
+                    "https://api.github.com/search/code",
+                    query=query,
+                    per_page=20,
+                    pages=self.search_pages,
+                    timeout=30,
+                )
+            except requests.HTTPError as exc:
+                status_code = getattr(getattr(exc, 'response', None), 'status_code', None)
+                if status_code == 403:
+                    logging.warning(
+                        "github_code search forbidden for query %r; skipping remaining code-search queries. Configure GH_PAT for Actions or reduce broad code-search usage.",
+                        query,
+                    )
+                    break
+                raise
             for item in items:
                 repository = item.get("repository", {})
                 html_url = repository.get("html_url")
