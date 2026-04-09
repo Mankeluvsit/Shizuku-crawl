@@ -29,6 +29,21 @@
 - [x] Scanner enable/disable presets
 - [x] More network failure simulation tests
 - [x] Web UI / review dashboard
+- [x] Web UI mobile layout improvements
+- [x] Web UI language badge / translate action
+- [x] Web UI description rendering fix
+- [x] Web UI language badge behavior fix
+- [x] AppConfig Web UI default compatibility fix
+- [x] Web UI escape warning fix
+- [x] Option C foundation: discovery-mode switch (`strict` / `broad`)
+- [x] Option C foundation: search-pages control
+- [x] Option C foundation: shared GitHub discovery query packs
+- [x] Option C foundation: broad GitHub code discovery
+- [x] Option C foundation: broad GitHub metadata discovery
+- [x] Option C foundation: broad GitHub release discovery
+- [x] Option C foundation: paginated GitHub discovery
+- [x] Option C foundation: matched-query evidence recording
+- [x] Option C foundation: broad query expansion tests
 
 ## Additional recommended features not built yet
 - [x] Browser-based review actions for confirmed / reviewed / false_positive / archived
@@ -40,10 +55,21 @@
 - [x] Retry count / rate-limit / failure metrics
 - [x] Scanner presets like --github-only / --fdroid-only / --full / --quick
 - [ ] More advanced plugin system
-- [ ] Metrics dashboard / richer observability view
+- [x] Metrics dashboard / richer observability view
 - [ ] More advanced artifact/installability judgment
+
+## Option C remaining work
+- [ ] Strict-mode verification / evidence-strength layer (`weak` / `medium` / `strong`)
+- [ ] Strict-mode filtering that excludes weak-only matches
+- [ ] Broad-mode retention with weaker confidence instead of hard exclusion
+- [ ] Apply Option C discovery/verification split to GitLab scanner
+- [ ] Apply Option C discovery/verification split to Codeberg scanner
+- [ ] README/source/manifest verification for stronger proof of Shizuku usage
+- [ ] Score/rank results using evidence strength
+- [ ] Add output/UI visibility for evidence strength
+- [ ] Add full strict-vs-broad behavior tests
 
 ## Notes
 - Current repo state includes Phase 1, Phase 2, and Phase 3 core tasks completed.
-- Phase 3 now includes safer CI automation, incremental reporting, broader source coverage, scanner registration plumbing, artifact-quality heuristics, fork lineage reporting, broader scanner test coverage, shared retry/backoff behavior for network scanners, better GitLab/Codeberg metadata enrichment, refined quality-aware scoring, per-scanner metrics in stats output, scanner presets, local retry simulation coverage, and a built-in Web UI.
-- The generated apps.html report still exists for static review, and the Web UI now provides interactive review-state editing backed by cache/review_state.json.
+- The generated apps.html report still exists for static review, and the Web UI provides interactive review-state editing backed by cache/review_state.json.
+- Option C has started. The repo now supports `--discovery-mode strict|broad` and `--search-pages`, with broader paginated GitHub discovery already in place. The main missing piece is the verification layer that differentiates strict-mode validated matches from broad-mode exploratory matches.
