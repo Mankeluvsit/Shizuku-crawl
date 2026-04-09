@@ -16,6 +16,8 @@ from .rules import apply_aliases, load_rule_set, should_force_include, should_ig
 from .scanners.registry import build_scanners
 from .scoring import score_apps
 
+GITHUB_SCANNERS = {"github_code", "github_meta", "github_releases", "github_forks"}
+
 
 def _setup_logging(level: str) -> None:
     logging.basicConfig(level=getattr(logging, level, logging.INFO), format="%(levelname)s: %(message)s")
@@ -82,6 +84,17 @@ def _filter_incremental(current_apps: list[AppResult], previous_apps: list[AppRe
     return changed
 
 
+def _apply_discovery_mode_filter(apps: list[AppResult], config: AppConfig) -> list[AppResult]:
+    if config.discovery_mode != 'strict':
+        return apps
+    filtered: list[AppResult] = []
+    for app in apps:
+        if app.scanner in GITHUB_SCANNERS and app.strongest_evidence_strength() == 'weak':
+            continue
+        filtered.append(app)
+    return filtered
+
+
 def run_pipeline(config: AppConfig) -> None:
     _setup_logging(config.log_level)
 
@@ -95,6 +108,7 @@ def run_pipeline(config: AppConfig) -> None:
 
     current_apps, scanner_metrics = _scan_apps(config)
     current_apps = normalize_apps(current_apps)
+    current_apps = _apply_discovery_mode_filter(current_apps, config)
     current_apps = apply_aliases(current_apps, rule_set.aliases)
     current_apps = filter_known_apps(current_apps, config.target_path)
 

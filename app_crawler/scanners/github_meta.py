@@ -9,6 +9,7 @@ from .base import BaseScanner
 from .discovery import (
     BROAD_GITHUB_REPO_EXTRA_QUERIES,
     STRICT_GITHUB_REPO_QUERIES,
+    classify_github_repo_query,
     expand_queries,
     paginated_search_items,
 )
@@ -31,6 +32,7 @@ class GithubMetaScanner(BaseScanner):
         queries = expand_queries(self.discovery_mode, STRICT_GITHUB_REPO_QUERIES, BROAD_GITHUB_REPO_EXTRA_QUERIES)
         apps: list[AppResult] = []
         for query in queries:
+            evidence_strength = classify_github_repo_query(query)
             items = paginated_search_items(
                 self.session,
                 "https://api.github.com/search/repositories",
@@ -60,6 +62,7 @@ class GithubMetaScanner(BaseScanner):
                                 reason="github-repository-search",
                                 detail=f"{query} :: {repo.get('full_name')}",
                                 file_path="README or metadata",
+                                evidence_strength=evidence_strength,
                             )
                         ],
                         sources=[SourceAttribution(scanner=self.name, source_type=self.source_type, trust_level=self.trust_level)],

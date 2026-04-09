@@ -17,6 +17,7 @@ def entry_to_markdown(app: AppResult) -> str:
     extra.append(f"confidence: {app.confidence}")
     extra.append(f"usefulness: {app.usefulness}")
     extra.append(f"status: {app.status}")
+    extra.append(f"evidence-strength: {app.strongest_evidence_strength()}")
     if app.release_info.release_url:
         extra.append(f"[release]({app.release_info.release_url})")
     if app.release_info.quality_label and app.release_info.quality_label != 'unknown':
@@ -95,6 +96,7 @@ def write_csv(path: Path, apps: list[AppResult]) -> None:
         "confidence",
         "usefulness",
         "status",
+        "evidence_strength",
         "release_url",
         "release_tag",
         "artifact_quality",
@@ -126,6 +128,7 @@ def write_csv(path: Path, apps: list[AppResult]) -> None:
                     "confidence": app.confidence,
                     "usefulness": app.usefulness,
                     "status": app.status,
+                    "evidence_strength": app.strongest_evidence_strength(),
                     "release_url": app.release_info.release_url or "",
                     "release_tag": app.release_info.release_tag or "",
                     "artifact_quality": app.release_info.quality_label,
@@ -164,6 +167,7 @@ def write_html(path: Path, apps: list[AppResult]) -> None:
             f"<td>{html.escape(app.confidence)}</td>"
             f"<td>{html.escape(app.usefulness)}</td>"
             f"<td>{html.escape(app.status)}</td>"
+            f"<td>{html.escape(app.strongest_evidence_strength())}</td>"
             f"<td>{'yes' if (app.has_downloads or app.release_info.has_downloads) else 'no'}</td>"
             f"<td>{html.escape(app.release_info.release_tag or '')}</td>"
             f"<td>{html.escape(quality)}</td>"
@@ -222,6 +226,7 @@ def write_html(path: Path, apps: list[AppResult]) -> None:
         <th>Confidence</th>
         <th>Usefulness</th>
         <th>Status</th>
+        <th>Evidence strength</th>
         <th>Downloads</th>
         <th>Release tag</th>
         <th>Artifact quality</th>
@@ -292,6 +297,10 @@ def write_stats(path: Path, apps: list[AppResult], scanner_metrics: dict[str, di
         "statuses": {
             status: sum(1 for a in apps if a.status == status)
             for status in sorted({a.status for a in apps} | {"new"})
+        },
+        "evidence_strength": {
+            level: sum(1 for a in apps if a.strongest_evidence_strength() == level)
+            for level in ("strong", "medium", "weak")
         },
     }
     path.write_text(json.dumps(stats, indent=2), encoding="utf-8")

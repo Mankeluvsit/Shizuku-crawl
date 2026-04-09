@@ -8,10 +8,11 @@ def score_apps(apps: list[AppResult], scoring_rules: dict[str, list[str]]) -> li
     medium_markers = [m.lower() for m in scoring_rules.get("confidence_medium_markers", [])]
 
     for app in apps:
+        evidence_strength = app.strongest_evidence_strength()
         joined = " ".join(app.match_reasons + [ev.reason for ev in app.evidence]).lower()
-        if any(marker in joined for marker in high_markers):
+        if evidence_strength == 'strong' or any(marker in joined for marker in high_markers):
             app.confidence = "high"
-        elif any(marker in joined for marker in medium_markers):
+        elif evidence_strength == 'medium' or any(marker in joined for marker in medium_markers):
             app.confidence = "medium"
         else:
             app.confidence = "low"

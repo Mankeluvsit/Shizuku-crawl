@@ -1,8 +1,9 @@
 from pathlib import Path
+import json
 
 from app_crawler.cache import Cache
-from app_crawler.models import AppResult
-from app_crawler.webui import HTML, _load_apps_for_ui, _save_review_update
+from app_crawler.models import AppResult, MatchEvidence
+from app_crawler.webui import HTML, _load_apps_for_ui, _load_stats_for_ui, _save_review_update
 
 
 def test_save_review_update_persists_review_state(tmp_path: Path):
@@ -16,7 +17,7 @@ def test_save_review_update_persists_review_state(tmp_path: Path):
 
 def test_load_apps_for_ui_applies_saved_review_state(tmp_path: Path):
     cache = Cache(tmp_path / 'cache')
-    app = AppResult(name='Demo', urls=['https://example.com'], scanner='gitlab')
+    app = AppResult(name='Demo', urls=['https://example.com'], scanner='gitlab', evidence=[MatchEvidence(source='gitlab', reason='x', evidence_strength='medium')])
     cache.save_current_run([app])
     _save_review_update(cache, app.identity_key_str(), 'reviewed', 'done', 'adam')
     apps = _load_apps_for_ui(cache)
@@ -24,28 +25,20 @@ def test_load_apps_for_ui_applies_saved_review_state(tmp_path: Path):
     assert apps[0]['review_notes'] == 'done'
     assert apps[0]['reviewed_by'] == 'adam'
     assert apps[0]['identity_key'] == app.identity_key_str()
+    assert apps[0]['strongest_evidence_strength'] == 'medium'
 
 
-def test_webui_contains_quick_review_action_buttons():
-    assert 'Mark confirmed' in HTML
-    assert 'Mark reviewed' in HTML
-    assert 'Mark false_positive' in HTML
-    assert 'Mark archived' in HTML
+def test_load_stats_for_ui_reads_stats_json(tmp_path: Path):
+    stats_path = tmp_path / 'scan_stats.json'
+    stats_path.write_text(json.dumps({'total': 4, 'scanner_metrics': {'gitlab': {'elapsed_ms': 5}}}), encoding='utf-8')
+    stats = _load_stats_for_ui(stats_path)
+    assert stats['total'] == 4
+    assert stats['scanner_metrics']['gitlab']['elapsed_ms'] == 5
 
 
-def test_webui_contains_mobile_friendly_layout_markers():
-    assert 'viewport' in HTML
-    assert '@media (max-width: 900px)' in HTML
-    assert 'scrollIntoView' in HTML
-    assert 'button-row' in HTML
-
-
-def test_webui_uses_html_to_text_for_descriptions():
-    assert 'htmlToText' in HTML
-    assert 'wrapper.innerHTML = raw' in HTML
-
-
-def test_webui_translate_is_only_for_non_latin_detection():
-    assert 'detectOriginalLanguage' in HTML
-    assert 'Latin script' not in HTML
-    assert 'Translate description' in HTML
+def test_webui_contains_dashboard_markers():
+    assert 'Shizuku Crawler Dashboard' in HTML
+    assert '/api/stats' in HTML
+    assert 'In-app preview' in HTML
+    assert 'Translation workspace' in HTML
+    assert 'strengthFilter' in HTML

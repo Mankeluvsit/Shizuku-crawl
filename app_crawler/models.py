@@ -5,12 +5,16 @@ from datetime import UTC, datetime
 from typing import Any
 
 
+EVIDENCE_STRENGTH_ORDER = {"weak": 0, "medium": 1, "strong": 2}
+
+
 @dataclass(slots=True)
 class MatchEvidence:
     source: str
     reason: str
     detail: str | None = None
     file_path: str | None = None
+    evidence_strength: str = "weak"
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -22,6 +26,7 @@ class MatchEvidence:
             reason=str(data.get("reason", "unknown")),
             detail=data.get("detail"),
             file_path=data.get("file_path"),
+            evidence_strength=str(data.get("evidence_strength", "weak")),
         )
 
 
@@ -157,6 +162,13 @@ class AppResult:
         key = self.identity_key()
         return f"{key[0]}::{key[1]}"
 
+    def strongest_evidence_strength(self) -> str:
+        strongest = "weak"
+        for ev in self.evidence:
+            if EVIDENCE_STRENGTH_ORDER.get(ev.evidence_strength, 0) > EVIDENCE_STRENGTH_ORDER.get(strongest, 0):
+                strongest = ev.evidence_strength
+        return strongest
+
     def merge(self, other: "AppResult") -> "AppResult":
         merged_urls = sorted(set([*self.urls, *other.urls]))
         merged_reasons = sorted(set([*self.match_reasons, *other.match_reasons]))
@@ -226,6 +238,7 @@ class AppResult:
             "usefulness": self.usefulness,
             "match_reasons": self.match_reasons,
             "evidence": [ev.to_dict() for ev in self.evidence],
+            "strongest_evidence_strength": self.strongest_evidence_strength(),
             "sources": [src.to_dict() for src in self.sources],
             "release_info": self.release_info.to_dict(),
             "fork_lineage": self.fork_lineage.to_dict(),

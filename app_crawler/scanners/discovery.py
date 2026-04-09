@@ -5,15 +5,15 @@ from collections.abc import Iterable
 STRICT_GITHUB_CODE_QUERIES = [
     '"rikka.shizuku" language:Java',
     '"rikka.shizuku" language:Kotlin',
-]
-
-BROAD_GITHUB_CODE_EXTRA_QUERIES = [
     '"moe.shizuku" language:Java',
     '"moe.shizuku" language:Kotlin',
     '"ShizukuProvider" language:Java',
     '"ShizukuProvider" language:Kotlin',
     '"ShizukuBinderWrapper" language:Java',
     '"ShizukuBinderWrapper" language:Kotlin',
+]
+
+BROAD_GITHUB_CODE_EXTRA_QUERIES = [
     '"Shizuku.pingBinder" language:Java',
     '"Shizuku.pingBinder" language:Kotlin',
     '"Shizuku.getUid" language:Java',
@@ -25,15 +25,14 @@ BROAD_GITHUB_CODE_EXTRA_QUERIES = [
 ]
 
 STRICT_GITHUB_REPO_QUERIES = [
-    'shizuku in:name,description,readme',
+    '"rikka.shizuku" in:readme',
+    '"moe.shizuku" in:readme',
+    '"requires shizuku" in:readme',
+    '"uses shizuku" in:readme',
+    '"powered by shizuku" in:readme',
 ]
 
 BROAD_GITHUB_REPO_EXTRA_QUERIES = [
-    '"requires shizuku" in:readme',
-    '"powered by shizuku" in:readme',
-    '"uses shizuku" in:readme',
-    '"moe.shizuku" in:readme',
-    '"rikka.shizuku" in:readme',
     'shizuku in:readme',
     'shizuku in:name,description',
 ]
@@ -68,3 +67,22 @@ def paginated_search_items(session, url: str, *, query: str, per_page: int, page
         if len(page_items) < per_page:
             break
     return items
+
+
+def classify_github_code_query(query: str) -> str:
+    lowered = query.lower()
+    strong_markers = ['rikka.shizuku', 'moe.shizuku', 'shizukuprovider', 'shizukubinderwrapper']
+    if any(marker in lowered for marker in strong_markers):
+        return 'strong'
+    medium_markers = ['shizuku.pingbinder', 'shizuku.getuid', 'addrequestpermissionresultlistener']
+    if any(marker in lowered for marker in medium_markers):
+        return 'medium'
+    return 'medium' if 'shizuku' in lowered else 'weak'
+
+
+def classify_github_repo_query(query: str) -> str:
+    lowered = query.lower()
+    medium_markers = ['rikka.shizuku', 'moe.shizuku', 'requires shizuku', 'uses shizuku', 'powered by shizuku']
+    if any(marker in lowered for marker in medium_markers):
+        return 'medium'
+    return 'weak'

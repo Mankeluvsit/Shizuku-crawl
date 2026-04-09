@@ -8,6 +8,7 @@ from .base import BaseScanner
 from .discovery import (
     BROAD_GITHUB_CODE_EXTRA_QUERIES,
     STRICT_GITHUB_CODE_QUERIES,
+    classify_github_code_query,
     expand_queries,
     paginated_search_items,
 )
@@ -30,6 +31,7 @@ class GithubCodeScanner(BaseScanner):
         queries = expand_queries(self.discovery_mode, STRICT_GITHUB_CODE_QUERIES, BROAD_GITHUB_CODE_EXTRA_QUERIES)
         apps: list[AppResult] = []
         for query in queries:
+            evidence_strength = classify_github_code_query(query)
             items = paginated_search_items(
                 self.session,
                 "https://api.github.com/search/code",
@@ -58,6 +60,7 @@ class GithubCodeScanner(BaseScanner):
                                 reason="github-code-search",
                                 detail=f"{query} :: {item.get('path')}",
                                 file_path=item.get("path"),
+                                evidence_strength=evidence_strength,
                             )
                         ],
                         sources=[SourceAttribution(scanner=self.name, source_type=self.source_type, trust_level=self.trust_level)],
