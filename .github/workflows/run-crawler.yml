@@ -1,0 +1,82 @@
+name: Run crawler
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main", "master"]
+  schedule:
+    - cron: "0 8 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+
+    env:
+      LIST_REPOSITORY: ""
+      LIST_REF: "main"
+      TARGET_PATH: "."
+      EXTRA_ARGS: ""
+
+    steps:
+      - name: Check out crawler repo
+        uses: actions/checkout@v4
+
+      - name: Optionally check out a separate list repository
+        if: ${{ env.LIST_REPOSITORY != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.LIST_REPOSITORY }}
+          ref: ${{ env.LIST_REF }}
+          path: target-repo
+          token: ${{ secrets.GH_PAT != '' && secrets.GH_PAT || github.token }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Choose target path
+        id: target
+        run: |
+          if [ -d target-repo ]; then
+            echo "path=target-repo/${TARGET_PATH}" >> "$GITHUB_OUTPUT"
+          else
+            echo "path=${TARGET_PATH}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run crawler
+        env:
+          GITHUB_AUTH: ${{ secrets.GH_PAT != '' && secrets.GH_PAT || github.token }}
+        run: |
+          python main.py "${{ steps.target.outputs.path }}" ${EXTRA_ARGS}
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: crawler-reports
+          path: |
+            ${{ steps.target.outputs.path }}/SUMMARY.md
+            ${{ steps.target.outputs.path }}/apps.json
+            ${{ steps.target.outputs.path }}/apps.csv
+            ${{ steps.target.outputs.path }}/apps.html
+            ${{ steps.target.outputs.path }}/scan_stats.json
+            ${{ steps.target.outputs.path }}/scan_diff.json
+            cache/**
+
+      - name: Commit updated reports back to target repo
+        if: ${{ env.LIST_REPOSITORY != '' }}
+        working-directory: target-repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git diff --cached --quiet || git commit -m "Update crawler reports"
+          git push
