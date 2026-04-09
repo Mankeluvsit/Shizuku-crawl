@@ -31,6 +31,7 @@ The crawler can:
 - annotate GitHub forks with lineage details such as parent repository, branch divergence counts, and whether the fork appears meaningfully ahead of the parent
 - use shared retry/backoff handling for network scanners to reduce transient HTTP failures
 - enrich GitLab and Codeberg findings with better homepage/tag/release hints when available
+- refine scoring based on artifact quality, fork lead signals, and richer release hints instead of only simple download presence
 
 ---
 
@@ -96,6 +97,20 @@ python main.py . --json --csv --html
 ```bash
 pytest -q
 ```
+
+---
+
+## Quality-aware scoring
+
+Usefulness scoring is now influenced by more than just “has downloads”. It also reacts to:
+
+- stronger artifact quality labels such as `strong` or `installable`
+- checksum/signature-style assets
+- universal APK hints
+- forks that appear meaningfully ahead of their parent
+- recent update signals when installable assets are not present
+
+This helps surface more promising candidates higher in the generated reports.
 
 ---
 

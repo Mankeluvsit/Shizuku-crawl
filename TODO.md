@@ -24,12 +24,12 @@
 - [x] More scanner tests
 - [x] Better retry/backoff controls
 - [x] GitLab/Codeberg enrichment improvements
+- [x] Release quality scoring refinements
 
 ## In progress
-- [ ] Release quality scoring refinements
+- [ ] Scanner-specific metrics expansion
 
 ## Next up
-- [ ] Scanner-specific metrics expansion
 - [ ] Scanner enable/disable presets
 - [ ] More network failure simulation tests
 - [ ] Web UI / review dashboard
@@ -50,5 +50,5 @@
 
 ## Notes
 - Current repo state includes Phase 1, Phase 2, and partial Phase 3.
-- Phase 3 now includes safer CI automation, incremental reporting, broader source coverage, scanner registration plumbing, artifact-quality heuristics, fork lineage reporting, broader scanner test coverage, shared retry/backoff behavior for network scanners, and better GitLab/Codeberg metadata enrichment.
+- Phase 3 now includes safer CI automation, incremental reporting, broader source coverage, scanner registration plumbing, artifact-quality heuristics, fork lineage reporting, broader scanner test coverage, shared retry/backoff behavior for network scanners, better GitLab/Codeberg metadata enrichment, and refined quality-aware scoring.
 - The generated apps.html report exists, but it is a static report and not the planned real Web UI.
