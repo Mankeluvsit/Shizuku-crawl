@@ -233,9 +233,18 @@ function isMobileLayout() {
   return window.matchMedia('(max-width: 900px)').matches;
 }
 
-function guessLanguage(text) {
+function htmlToText(value) {
+  const raw = String(value || '');
+  if (!raw) return '';
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = raw;
+  const text = (wrapper.textContent || wrapper.innerText || '').replace(/\s+/g, ' ').trim();
+  return text;
+}
+
+function detectOriginalLanguage(text) {
   const value = String(text || '').trim();
-  if (!value) return { code: 'unknown', label: 'unknown' };
+  if (!value) return null;
   if (/[\u3040-\u30ff]/.test(value)) return { code: 'ja', label: 'Japanese' };
   if (/[\u4e00-\u9fff]/.test(value)) return { code: 'zh', label: 'Chinese' };
   if (/[\uac00-\ud7af]/.test(value)) return { code: 'ko', label: 'Korean' };
@@ -243,10 +252,7 @@ function guessLanguage(text) {
   if (/[\u0600-\u06FF]/.test(value)) return { code: 'ar', label: 'Arabic' };
   if (/[\u0590-\u05FF]/.test(value)) return { code: 'he', label: 'Hebrew' };
   if (/[\u0900-\u097F]/.test(value)) return { code: 'hi', label: 'Devanagari' };
-  const asciiLetters = (value.match(/[A-Za-z]/g) || []).length;
-  const latinExtended = /[À-ÖØ-öø-ÿ]/.test(value);
-  if (asciiLetters > 0 || latinExtended) return { code: 'auto', label: 'Latin script' };
-  return { code: 'unknown', label: 'unknown' };
+  return null;
 }
 
 function openTranslate(text) {
@@ -261,7 +267,8 @@ function renderList() {
   const sf = document.getElementById('statusFilter').value;
   const list = document.getElementById('list');
   const filtered = allApps.filter(app => {
-    const text = `${app.name} ${app.scanner} ${app.desc || ''}`.toLowerCase();
+    const descriptionText = htmlToText(app.desc || '');
+    const text = `${app.name} ${app.scanner} ${descriptionText}`.toLowerCase();
     const okQ = !q || text.includes(q);
     const okS = !sf || app.status === sf;
     return okQ && okS;
@@ -271,13 +278,14 @@ function renderList() {
     return;
   }
   list.innerHTML = filtered.map(app => {
-    const lang = guessLanguage(app.desc || app.name || '');
+    const descriptionText = htmlToText(app.desc || '');
+    const language = detectOriginalLanguage(descriptionText || app.name || '');
     return `
       <div class="item ${selected && selected.identity_key === app.identity_key ? 'selected' : ''}" data-key="${app.identity_key}">
         <div class="item-title">${escapeHtml(app.name)}</div>
         <div class="muted">${escapeHtml(app.scanner)} • ${escapeHtml(app.status)} • ${escapeHtml(app.confidence)} / ${escapeHtml(app.usefulness)}</div>
-        <div class="muted" style="margin-top:6px;">${escapeHtml(app.desc || '')}</div>
-        <div class="muted" style="margin-top:8px;">Original language: ${escapeHtml(lang.label)}</div>
+        <div class="muted" style="margin-top:6px;">${escapeHtml(descriptionText || '')}</div>
+        ${language ? `<div class="muted" style="margin-top:8px;">Original language: ${escapeHtml(language.label)}</div>` : ''}
       </div>
     `;
   }).join('');
@@ -309,8 +317,8 @@ function renderDetail(app, scrollOnMobile=true) {
   renderList();
   const detail = document.getElementById('detail');
   const primaryUrl = app.urls[0] || '#';
-  const descriptionText = app.desc || '';
-  const originalLanguage = guessLanguage(descriptionText || app.name || '');
+  const descriptionText = htmlToText(app.desc || '');
+  const originalLanguage = detectOriginalLanguage(descriptionText || app.name || '');
   detail.innerHTML = `
     <div class='detail-card'>
       <div class='row'>
@@ -319,7 +327,7 @@ function renderDetail(app, scrollOnMobile=true) {
         <div class='chip'>status: ${escapeHtml(app.status)}</div>
         <div class='chip'>confidence: ${escapeHtml(app.confidence)}</div>
         <div class='chip'>usefulness: ${escapeHtml(app.usefulness)}</div>
-        <div class='chip'>original language: ${escapeHtml(originalLanguage.label)}</div>
+        ${originalLanguage ? `<div class='chip'>original language: ${escapeHtml(originalLanguage.label)}</div>` : ''}
       </div>
       <div class='row'><a href='${escapeAttr(primaryUrl)}' target='_blank'>Open primary URL</a></div>
       <div class='subgrid'>
@@ -327,11 +335,12 @@ function renderDetail(app, scrollOnMobile=true) {
         <div><strong>Fork lineage</strong><div class='muted'>${escapeHtml(app.fork_lineage.parent_full_name || 'none')}</div></div>
       </div>
       <div class='row'><strong>Description</strong><div class='muted' style='margin-top:6px;'>${escapeHtml(descriptionText || 'No description')}</div></div>
+      ${originalLanguage ? `
       <div class='row'>
         <div class='button-row'>
           <button class='button-translate' id='translateBtn'>Translate description</button>
         </div>
-      </div>
+      </div>` : ''}
       <div class='row'><strong>Evidence</strong><pre>${escapeHtml(JSON.stringify(app.evidence, null, 2))}</pre></div>
       <div class='row'>
         <div class='button-row'>
@@ -359,7 +368,10 @@ function renderDetail(app, scrollOnMobile=true) {
       <div class='row muted save-status' id='saveStatus'></div>
     </div>
   `;
-  document.getElementById('translateBtn').onclick = () => openTranslate(descriptionText || app.name || '');
+  const translateBtn = document.getElementById('translateBtn');
+  if (translateBtn) {
+    translateBtn.onclick = () => openTranslate(descriptionText || app.name || '');
+  }
   document.getElementById('saveBtn').onclick = async () => saveReview(app);
   document.getElementById('confirmBtn').onclick = async () => saveReview(app, 'confirmed');
   document.getElementById('reviewedBtn').onclick = async () => saveReview(app, 'reviewed');

@@ -40,7 +40,12 @@ def test_webui_contains_mobile_friendly_layout_markers():
     assert 'button-row' in HTML
 
 
-def test_webui_contains_translate_markers():
+def test_webui_uses_html_to_text_for_descriptions():
+    assert 'htmlToText' in HTML
+    assert 'wrapper.innerHTML = raw' in HTML
+
+
+def test_webui_translate_is_only_for_non_latin_detection():
+    assert 'detectOriginalLanguage' in HTML
+    assert 'Latin script' not in HTML
     assert 'Translate description' in HTML
-    assert 'Original language:' in HTML
-    assert 'translate.google.com' in HTML
