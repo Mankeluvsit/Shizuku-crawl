@@ -4,11 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "app-crawler-refactor"
-version = "0.2.1"
+version = "0.2.0"
 description = "Refactored crawler for discovering Shizuku-related Android apps and repositories"
 readme = "README.md"
 requires-python = ">=3.11"
-license = "MIT"
-
-[tool.setuptools]
-packages = ["app_crawler"]
+license = {text = "MIT"}
