@@ -31,3 +31,10 @@ def test_webui_contains_quick_review_action_buttons():
     assert 'Mark reviewed' in HTML
     assert 'Mark false_positive' in HTML
     assert 'Mark archived' in HTML
+
+
+def test_webui_contains_mobile_friendly_layout_markers():
+    assert 'viewport' in HTML
+    assert '@media (max-width: 900px)' in HTML
+    assert 'scrollIntoView' in HTML
+    assert 'button-row' in HTML

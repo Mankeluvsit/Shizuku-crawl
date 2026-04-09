@@ -15,21 +15,186 @@ HTML = """<!doctype html>
 <html>
 <head>
   <meta charset='utf-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1, viewport-fit=cover'>
   <title>App Crawler Review UI</title>
   <style>
-    body { font-family: sans-serif; margin: 0; }
-    .bar { padding: 12px; border-bottom: 1px solid #ddd; display: flex; gap: 8px; position: sticky; top: 0; background: #fff; }
-    .layout { display: grid; grid-template-columns: 38% 62%; min-height: calc(100vh - 50px); }
-    .list { border-right: 1px solid #ddd; overflow: auto; }
-    .detail { padding: 16px; overflow: auto; }
-    .item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; }
-    .item:hover { background: #f8f8f8; }
-    .muted { color: #666; font-size: 12px; }
-    textarea { width: 100%; min-height: 120px; }
-    select, input, button, textarea { font: inherit; padding: 8px; }
-    pre { white-space: pre-wrap; word-break: break-word; background: #f7f7f7; padding: 12px; }
-    .row { margin-bottom: 12px; }
-    .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    :root {
+      --bg: #0f1115;
+      --panel: #171a21;
+      --panel-2: #1d2230;
+      --border: #2a3142;
+      --text: #eef2ff;
+      --muted: #9aa4bf;
+      --accent: #7aa2ff;
+      --good: #35c48b;
+      --warn: #ffb84d;
+      --bad: #ff6b6b;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font-family: Inter, system-ui, sans-serif; }
+    a { color: var(--accent); }
+    body { min-height: 100vh; }
+    .bar {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(15, 17, 21, 0.92);
+      backdrop-filter: blur(12px);
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(300px, 36%) minmax(0, 1fr);
+      min-height: calc(100vh - 74px);
+    }
+    .list {
+      overflow: auto;
+      border-right: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(23,26,33,0.96), rgba(15,17,21,0.98));
+    }
+    .detail {
+      padding: 18px;
+      overflow: auto;
+      background: radial-gradient(circle at top right, rgba(122,162,255,0.08), transparent 28%), var(--bg);
+    }
+    .empty {
+      border: 1px dashed var(--border);
+      background: var(--panel);
+      border-radius: var(--radius);
+      padding: 18px;
+      color: var(--muted);
+    }
+    .item {
+      margin: 10px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      cursor: pointer;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    }
+    .item:hover { transform: translateY(-1px); border-color: var(--accent); }
+    .item.selected {
+      border-color: var(--accent);
+      background: linear-gradient(180deg, rgba(122,162,255,0.12), rgba(23,26,33,0.96));
+    }
+    .item-title { font-size: 15px; font-weight: 700; line-height: 1.35; margin-bottom: 6px; }
+    .muted { color: var(--muted); font-size: 12px; line-height: 1.45; }
+    textarea, select, input, button {
+      font: inherit;
+      color: var(--text);
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+    textarea {
+      width: 100%;
+      min-height: 140px;
+      resize: vertical;
+    }
+    input, select { min-height: 46px; }
+    button {
+      min-height: 46px;
+      cursor: pointer;
+      transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    }
+    button:hover { transform: translateY(-1px); border-color: var(--accent); }
+    .button-row button { flex: 1 1 160px; }
+    .button-confirm { border-color: rgba(53,196,139,0.5); }
+    .button-reviewed { border-color: rgba(122,162,255,0.5); }
+    .button-false { border-color: rgba(255,184,77,0.5); }
+    .button-archive { border-color: rgba(255,107,107,0.45); }
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #11151d;
+      border: 1px solid var(--border);
+      padding: 14px;
+      border-radius: 14px;
+      overflow: auto;
+    }
+    .row { margin-bottom: 14px; }
+    .actions, .button-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .detail-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+    .headline { margin: 0 0 8px; font-size: 24px; line-height: 1.2; }
+    .subgrid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(122,162,255,0.08);
+      color: var(--muted);
+      font-size: 12px;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+    .save-status { min-height: 20px; }
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+        min-height: auto;
+      }
+      .list {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        max-height: 42vh;
+      }
+      .detail {
+        padding: 12px;
+      }
+      .subgrid {
+        grid-template-columns: 1fr;
+      }
+      .headline {
+        font-size: 22px;
+      }
+    }
+    @media (max-width: 640px) {
+      .bar {
+        padding: 10px;
+        gap: 8px;
+      }
+      .bar input, .bar select, .bar button {
+        width: 100%;
+      }
+      .item {
+        margin: 8px;
+        padding: 12px;
+      }
+      .detail-card {
+        padding: 14px;
+        border-radius: 14px;
+      }
+      .button-row button, .actions button, #saveBtn {
+        width: 100%;
+      }
+      textarea {
+        min-height: 160px;
+      }
+      .detail { padding-bottom: 28px; }
+    }
   </style>
 </head>
 <body>
@@ -47,7 +212,7 @@ HTML = """<!doctype html>
   </div>
   <div class='layout'>
     <div class='list' id='list'></div>
-    <div class='detail' id='detail'><div class='muted'>Select an entry.</div></div>
+    <div class='detail' id='detail'><div class='empty'>Select an entry to review.</div></div>
   </div>
 <script>
 let allApps = [];
@@ -59,8 +224,12 @@ async function loadApps() {
   renderList();
   if (selected) {
     const next = allApps.find(a => a.identity_key === selected.identity_key);
-    if (next) renderDetail(next);
+    if (next) renderDetail(next, false);
   }
+}
+
+function isMobileLayout() {
+  return window.matchMedia('(max-width: 900px)').matches;
 }
 
 function renderList() {
@@ -73,16 +242,20 @@ function renderList() {
     const okS = !sf || app.status === sf;
     return okQ && okS;
   });
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty" style="margin:12px;">No entries match the current filter.</div>`;
+    return;
+  }
   list.innerHTML = filtered.map(app => `
-    <div class="item" data-key="${app.identity_key}">
-      <div><strong>${escapeHtml(app.name)}</strong></div>
+    <div class="item ${selected && selected.identity_key === app.identity_key ? 'selected' : ''}" data-key="${app.identity_key}">
+      <div class="item-title">${escapeHtml(app.name)}</div>
       <div class="muted">${escapeHtml(app.scanner)} • ${escapeHtml(app.status)} • ${escapeHtml(app.confidence)} / ${escapeHtml(app.usefulness)}</div>
-      <div class="muted">${escapeHtml(app.desc || '')}</div>
+      <div class="muted" style="margin-top:6px;">${escapeHtml(app.desc || '')}</div>
     </div>
   `).join('');
   list.querySelectorAll('.item').forEach(el => el.onclick = () => {
     const app = filtered.find(a => a.identity_key === el.dataset.key);
-    if (app) renderDetail(app);
+    if (app) renderDetail(app, true);
   });
 }
 
@@ -103,47 +276,61 @@ async function saveReview(app, statusOverride=null) {
   await loadApps();
 }
 
-function renderDetail(app) {
+function renderDetail(app, scrollOnMobile=true) {
   selected = app;
+  renderList();
   const detail = document.getElementById('detail');
+  const primaryUrl = app.urls[0] || '#';
   detail.innerHTML = `
-    <div class='row'><h2>${escapeHtml(app.name)}</h2></div>
-    <div class='row'><a href='${escapeAttr(app.urls[0] || '#')}' target='_blank'>Open primary URL</a></div>
-    <div class='row'><strong>Scanner:</strong> ${escapeHtml(app.scanner)}</div>
-    <div class='row'><strong>Description:</strong> ${escapeHtml(app.desc || '')}</div>
-    <div class='row'><strong>Artifact quality:</strong> ${escapeHtml(app.release_info.quality_label || 'unknown')}</div>
-    <div class='row'><strong>Fork lineage:</strong> ${escapeHtml(app.fork_lineage.parent_full_name || '')}</div>
-    <div class='row'><strong>Evidence:</strong><pre>${escapeHtml(JSON.stringify(app.evidence, null, 2))}</pre></div>
-    <div class='row'>
-      <div class='actions'>
-        <button id='confirmBtn'>Mark confirmed</button>
-        <button id='reviewedBtn'>Mark reviewed</button>
-        <button id='falseBtn'>Mark false_positive</button>
-        <button id='archiveBtn'>Mark archived</button>
+    <div class='detail-card'>
+      <div class='row'>
+        <h2 class='headline'>${escapeHtml(app.name)}</h2>
+        <div class='chip'>${escapeHtml(app.scanner)}</div>
+        <div class='chip'>status: ${escapeHtml(app.status)}</div>
+        <div class='chip'>confidence: ${escapeHtml(app.confidence)}</div>
+        <div class='chip'>usefulness: ${escapeHtml(app.usefulness)}</div>
       </div>
+      <div class='row'><a href='${escapeAttr(primaryUrl)}' target='_blank'>Open primary URL</a></div>
+      <div class='subgrid'>
+        <div><strong>Artifact quality</strong><div class='muted'>${escapeHtml(app.release_info.quality_label || 'unknown')}</div></div>
+        <div><strong>Fork lineage</strong><div class='muted'>${escapeHtml(app.fork_lineage.parent_full_name || 'none')}</div></div>
+      </div>
+      <div class='row'><strong>Description</strong><div class='muted' style='margin-top:6px;'>${escapeHtml(app.desc || 'No description')}</div></div>
+      <div class='row'><strong>Evidence</strong><pre>${escapeHtml(JSON.stringify(app.evidence, null, 2))}</pre></div>
+      <div class='row'>
+        <div class='button-row'>
+          <button class='button-confirm' id='confirmBtn'>Mark confirmed</button>
+          <button class='button-reviewed' id='reviewedBtn'>Mark reviewed</button>
+          <button class='button-false' id='falseBtn'>Mark false_positive</button>
+          <button class='button-archive' id='archiveBtn'>Mark archived</button>
+        </div>
+      </div>
+      <div class='row'>
+        <label>Status</label><br>
+        <select id='status'>
+          ${['new','confirmed','reviewed','false_positive','archived'].map(s => `<option value="${s}" ${app.status===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </div>
+      <div class='row'>
+        <label>Review notes</label><br>
+        <textarea id='notes'>${escapeHtml(app.review_notes || '')}</textarea>
+      </div>
+      <div class='row'>
+        <label>Reviewed by</label><br>
+        <input id='reviewedBy' value='${escapeAttr(app.reviewed_by || '')}'>
+      </div>
+      <div class='row'><button id='saveBtn'>Save review</button></div>
+      <div class='row muted save-status' id='saveStatus'></div>
     </div>
-    <div class='row'>
-      <label>Status</label><br>
-      <select id='status'>
-        ${['new','confirmed','reviewed','false_positive','archived'].map(s => `<option value="${s}" ${app.status===s?'selected':''}>${s}</option>`).join('')}
-      </select>
-    </div>
-    <div class='row'>
-      <label>Review notes</label><br>
-      <textarea id='notes'>${escapeHtml(app.review_notes || '')}</textarea>
-    </div>
-    <div class='row'>
-      <label>Reviewed by</label><br>
-      <input id='reviewedBy' value='${escapeAttr(app.reviewed_by || '')}'>
-    </div>
-    <div class='row'><button id='saveBtn'>Save review</button></div>
-    <div class='row muted' id='saveStatus'></div>
   `;
   document.getElementById('saveBtn').onclick = async () => saveReview(app);
   document.getElementById('confirmBtn').onclick = async () => saveReview(app, 'confirmed');
   document.getElementById('reviewedBtn').onclick = async () => saveReview(app, 'reviewed');
   document.getElementById('falseBtn').onclick = async () => saveReview(app, 'false_positive');
   document.getElementById('archiveBtn').onclick = async () => saveReview(app, 'archived');
+  if (scrollOnMobile && isMobileLayout()) {
+    detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 
 function escapeHtml(s) {
@@ -154,6 +341,7 @@ function escapeAttr(s) { return escapeHtml(s).replaceAll("'", '&#39;'); }
 document.getElementById('search').addEventListener('input', renderList);
 document.getElementById('statusFilter').addEventListener('change', renderList);
 document.getElementById('reload').addEventListener('click', loadApps);
+window.addEventListener('resize', () => { if (selected) renderDetail(selected, false); });
 loadApps();
 </script>
 </body>
