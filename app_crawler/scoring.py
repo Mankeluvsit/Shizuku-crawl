@@ -3,16 +3,15 @@ from __future__ import annotations
 from .models import AppResult
 
 
-HIGH_MARKERS = ["rikka.shizuku", "fdroid-metadata"]
-MEDIUM_MARKERS = ["shizuku"]
+def score_apps(apps: list[AppResult], scoring_rules: dict[str, list[str]]) -> list[AppResult]:
+    high_markers = [m.lower() for m in scoring_rules.get("confidence_high_markers", [])]
+    medium_markers = [m.lower() for m in scoring_rules.get("confidence_medium_markers", [])]
 
-
-def score_apps(apps: list[AppResult]) -> list[AppResult]:
     for app in apps:
         joined = " ".join(app.match_reasons + [ev.reason for ev in app.evidence]).lower()
-        if any(marker in joined for marker in HIGH_MARKERS):
+        if any(marker in joined for marker in high_markers):
             app.confidence = "high"
-        elif any(marker in joined for marker in MEDIUM_MARKERS):
+        elif any(marker in joined for marker in medium_markers):
             app.confidence = "medium"
         else:
             app.confidence = "low"

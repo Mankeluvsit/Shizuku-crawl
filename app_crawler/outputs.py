@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import html
 import json
 from datetime import UTC, datetime
 from pathlib import Path
@@ -13,14 +14,16 @@ def entry_to_markdown(app: AppResult) -> str:
     if app.desc:
         line += f" - {app.desc}"
     extra: list[str] = []
-    if app.confidence:
-        extra.append(f"confidence: {app.confidence}")
-    if app.usefulness:
-        extra.append(f"usefulness: {app.usefulness}")
+    extra.append(f"confidence: {app.confidence}")
+    extra.append(f"usefulness: {app.usefulness}")
+    extra.append(f"status: {app.status}")
     if app.release_info.release_url:
         extra.append(f"[release]({app.release_info.release_url})")
-    if extra:
-        line += " (" + ", ".join(extra) + ")"
+    if app.evidence:
+        ev = app.evidence[0]
+        snippet = ev.detail or ev.reason
+        extra.append(f"evidence: {snippet[:80]}".replace("\n", " "))
+    line += " (" + ", ".join(extra) + ")"
     return line
 
 
@@ -86,8 +89,10 @@ def write_csv(path: Path, apps: list[AppResult]) -> None:
         "has_downloads",
         "confidence",
         "usefulness",
+        "status",
         "release_url",
         "release_tag",
+        "evidence",
     ]
     with path.open("w", encoding="utf-8", newline="") as fh:
         writer = csv.DictWriter(fh, fieldnames=fieldnames)
@@ -105,8 +110,10 @@ def write_csv(path: Path, apps: list[AppResult]) -> None:
                     "has_downloads": app.has_downloads or app.release_info.has_downloads,
                     "confidence": app.confidence,
                     "usefulness": app.usefulness,
+                    "status": app.status,
                     "release_url": app.release_info.release_url or "",
                     "release_tag": app.release_info.release_tag or "",
+                    "evidence": (app.evidence[0].detail or app.evidence[0].reason) if app.evidence else "",
                 }
             )
 
@@ -116,17 +123,20 @@ def write_html(path: Path, apps: list[AppResult]) -> None:
     for app in apps:
         primary_url = app.urls[0] if app.urls else ""
         release = app.release_info.release_url or ""
+        evidence = (app.evidence[0].detail or app.evidence[0].reason) if app.evidence else ""
         rows.append(
             "<tr>"
-            f"<td><a href='{primary_url}'>{app.name}</a></td>"
-            f"<td>{app.confidence}</td>"
-            f"<td>{app.usefulness}</td>"
+            f"<td><a href='{html.escape(primary_url)}'>{html.escape(app.name)}</a></td>"
+            f"<td>{html.escape(app.confidence)}</td>"
+            f"<td>{html.escape(app.usefulness)}</td>"
+            f"<td>{html.escape(app.status)}</td>"
             f"<td>{'yes' if (app.has_downloads or app.release_info.has_downloads) else 'no'}</td>"
-            f"<td>{app.release_info.release_tag or ''}</td>"
-            f"<td><a href='{release}'>release</a></td>" if release else "<td></td>"
-            "</tr>"
+            f"<td>{html.escape(app.release_info.release_tag or '')}</td>"
+            f"<td>{html.escape(evidence[:120])}</td>"
+            + (f"<td><a href='{html.escape(release)}'>release</a></td>" if release else "<td></td>")
+            + "</tr>"
         )
-    html = f"""<!doctype html>
+    html_doc = f"""<!doctype html>
 <html>
 <head>
   <meta charset='utf-8'>
@@ -146,8 +156,10 @@ def write_html(path: Path, apps: list[AppResult]) -> None:
         <th>Name</th>
         <th>Confidence</th>
         <th>Usefulness</th>
+        <th>Status</th>
         <th>Downloads</th>
         <th>Release tag</th>
+        <th>Evidence</th>
         <th>Release</th>
       </tr>
     </thead>
@@ -158,7 +170,7 @@ def write_html(path: Path, apps: list[AppResult]) -> None:
 </body>
 </html>
 """
-    path.write_text(html, encoding="utf-8")
+    path.write_text(html_doc, encoding="utf-8")
 
 
 def write_stats(path: Path, apps: list[AppResult]) -> None:
@@ -172,6 +184,10 @@ def write_stats(path: Path, apps: list[AppResult]) -> None:
         "usefulness": {
             level: sum(1 for a in apps if a.usefulness == level)
             for level in ("high", "medium", "low")
+        },
+        "statuses": {
+            status: sum(1 for a in apps if a.status == status)
+            for status in sorted({a.status for a in apps} | {"new"})
         },
     }
     path.write_text(json.dumps(stats, indent=2), encoding="utf-8")

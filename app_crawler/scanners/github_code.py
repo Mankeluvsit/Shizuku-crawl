@@ -49,6 +49,7 @@ class GithubCodeScanner(BaseScanner):
                             source=self.name,
                             reason="github-code-search",
                             detail=item.get("path"),
+                            file_path=item.get("path"),
                         )
                     ],
                     sources=[SourceAttribution(scanner=self.name, source_type=self.source_type, trust_level=self.trust_level)],

@@ -5,9 +5,6 @@ from pathlib import Path
 from .models import AppResult
 
 
-TEXT_SUFFIXES = {".md", ".markdown", ".txt"}
-
-
 def load_reference_paths(target_path: Path) -> list[Path]:
     readmes = sorted(p for p in target_path.glob("*.md") if p.is_file())
     unlisted = target_path / "pages" / "UNLISTED.md"

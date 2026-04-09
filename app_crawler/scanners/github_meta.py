@@ -49,6 +49,7 @@ class GithubMetaScanner(BaseScanner):
                             source=self.name,
                             reason="github-repository-search",
                             detail=repo.get("full_name"),
+                            file_path="README or metadata",
                         )
                     ],
                     sources=[SourceAttribution(scanner=self.name, source_type=self.source_type, trust_level=self.trust_level)],

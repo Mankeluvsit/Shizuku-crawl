@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  scan:
+  test-and-scan:
     runs-on: ubuntu-latest
 
     env:
@@ -43,6 +43,9 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
+      - name: Run tests
+        run: pytest -q
+
       - name: Choose target path
         id: target
         run: |
@@ -56,7 +59,7 @@ jobs:
         env:
           GITHUB_AUTH: ${{ secrets.GH_PAT != '' && secrets.GH_PAT || github.token }}
         run: |
-          python main.py "${{ steps.target.outputs.path }}" ${EXTRA_ARGS}
+          python main.py "${{ steps.target.outputs.path }}" --json --csv --html ${EXTRA_ARGS}
 
       - name: Upload reports
         uses: actions/upload-artifact@v4

@@ -5,7 +5,7 @@ import pickle
 from pathlib import Path
 from typing import Any
 
-from .models import AppResult
+from .models import AppResult, ReviewState
 
 
 class Cache:
@@ -13,6 +13,7 @@ class Cache:
         self.cache_dir = cache_dir
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.current_run_path = self.cache_dir / "current_run.json"
+        self.review_state_path = self.cache_dir / "review_state.json"
         self.legacy_pickle_path = self.cache_dir / "apps.cache"
 
     def load_all(self) -> list[AppResult]:
@@ -39,3 +40,16 @@ class Cache:
             json.dumps([app.to_dict() for app in apps], indent=2, ensure_ascii=False),
             encoding="utf-8",
         )
+
+    def load_review_state(self) -> dict[str, ReviewState]:
+        if not self.review_state_path.exists():
+            return {}
+        try:
+            data = json.loads(self.review_state_path.read_text(encoding="utf-8"))
+            return {key: ReviewState.from_dict(value) for key, value in data.items()}
+        except Exception:
+            return {}
+
+    def save_review_state(self, review_state: dict[str, ReviewState]) -> None:
+        data = {key: value.to_dict() for key, value in review_state.items()}
+        self.review_state_path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")

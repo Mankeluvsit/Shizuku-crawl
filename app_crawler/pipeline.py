@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import logging
 from datetime import UTC, datetime
 from pathlib import Path
@@ -8,16 +7,10 @@ from pathlib import Path
 from .cache import Cache
 from .config import AppConfig
 from .known import filter_known_apps
-from .models import AppResult
+from .models import AppResult, ReviewState
 from .normalize import normalize_apps
-from .outputs import (
-    write_csv,
-    write_diff,
-    write_html,
-    write_json,
-    write_stats,
-    write_summary,
-)
+from .outputs import write_csv, write_diff, write_html, write_json, write_stats, write_summary
+from .rules import apply_aliases, load_rule_set, should_force_include, should_ignore
 from .scanners.fdroid import FDroidScanner
 from .scanners.github_code import GithubCodeScanner
 from .scanners.github_meta import GithubMetaScanner
@@ -26,24 +19,6 @@ from .scoring import score_apps
 
 def _setup_logging(level: str) -> None:
     logging.basicConfig(level=getattr(logging, level, logging.INFO), format="%(levelname)s: %(message)s")
-
-
-def _is_allowed_app(app: AppResult, ignore_items: set[str]) -> bool:
-    if app.name in ignore_items:
-        return False
-    if any(url in ignore_items for url in app.urls):
-        return False
-    return True
-
-
-def _load_ignore_list(path: Path) -> set[str]:
-    if not path.exists():
-        return set()
-    return {
-        line.strip()
-        for line in path.read_text(encoding="utf-8", errors="ignore").splitlines()
-        if line.strip() and not line.strip().startswith("#")
-    }
 
 
 def _dedupe_apps(apps: list[AppResult]) -> list[AppResult]:
@@ -58,8 +33,6 @@ def _dedupe_apps(apps: list[AppResult]) -> list[AppResult]:
 
 
 def _scan_apps(config: AppConfig) -> list[AppResult]:
-    apps: list[AppResult] = []
-
     scanners = [
         FDroidScanner("https://f-droid.org/repo/index.xml"),
         FDroidScanner("https://apt.izzysoft.de/fdroid/repo/index.xml"),
@@ -87,20 +60,33 @@ def _scan_apps(config: AppConfig) -> list[AppResult]:
     return all_apps
 
 
+def _apply_review_state(apps: list[AppResult], review_state: dict[str, ReviewState]) -> None:
+    for app in apps:
+        app.apply_review_state(review_state.get(app.identity_key_str()))
+
+
 def run_pipeline(config: AppConfig) -> None:
     _setup_logging(config.log_level)
 
     cwd = Path.cwd()
     cache_dir = cwd / "cache"
     cache = Cache(cache_dir)
+    rule_set = load_rule_set(config.rules_dir)
 
     previous_apps = [] if config.no_cache else cache.load_all()
+    existing_review_state = cache.load_review_state()
+
     current_apps = _scan_apps(config)
     current_apps = normalize_apps(current_apps)
+    current_apps = apply_aliases(current_apps, rule_set.aliases)
     current_apps = filter_known_apps(current_apps, config.target_path)
 
-    ignore_items = _load_ignore_list(cwd / "ignore_list.lst")
-    current_apps = [app for app in current_apps if _is_allowed_app(app, ignore_items)]
+    filtered_current: list[AppResult] = []
+    for app in current_apps:
+        if should_ignore(app, rule_set):
+            continue
+        filtered_current.append(app)
+    current_apps = filtered_current
 
     now = datetime.now(UTC).isoformat()
     for app in current_apps:
@@ -109,9 +95,11 @@ def run_pipeline(config: AppConfig) -> None:
         app.last_seen = now
 
     merged = _dedupe_apps([*current_apps, *previous_apps])
+    merged = apply_aliases(merged, rule_set.aliases)
     merged = filter_known_apps(merged, config.target_path)
-    merged = [app for app in merged if _is_allowed_app(app, ignore_items)]
-    merged = score_apps(merged)
+    merged = [app for app in merged if not should_ignore(app, rule_set) or should_force_include(app, rule_set)]
+    merged = score_apps(merged, rule_set.scoring_rules)
+    _apply_review_state(merged, existing_review_state)
     merged.sort(key=lambda a: a.name.casefold())
 
     if config.dry_run:
@@ -136,6 +124,7 @@ def run_pipeline(config: AppConfig) -> None:
         write_html(cwd / "apps.html", merged)
 
     cache.save_current_run(merged)
+    cache.save_review_state({app.identity_key_str(): app.to_review_state() for app in merged})
 
     for app in merged:
         logging.info("%s: %s %s", app.scanner, app.name, app.urls)

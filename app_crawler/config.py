@@ -21,6 +21,7 @@ class AppConfig:
     process_count: int
     recent_days: int
     log_level: str
+    rules_dir: Path
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
@@ -34,6 +35,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--html", action="store_true", dest="write_html", help="Write apps.html")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--no-cache", action="store_true")
+    parser.add_argument("--rules-dir", default="rules")
     parser.add_argument(
         "--process-count",
         type=int,
@@ -60,4 +62,5 @@ def config_from_args(args: argparse.Namespace) -> AppConfig:
         process_count=max(1, args.process_count),
         recent_days=max(1, args.recent_days),
         log_level=str(args.log_level).upper(),
+        rules_dir=Path(args.rules_dir).resolve(),
     )

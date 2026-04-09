@@ -10,6 +10,7 @@ class MatchEvidence:
     source: str
     reason: str
     detail: str | None = None
+    file_path: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -20,6 +21,7 @@ class MatchEvidence:
             source=str(data.get("source", "unknown")),
             reason=str(data.get("reason", "unknown")),
             detail=data.get("detail"),
+            file_path=data.get("file_path"),
         )
 
 
@@ -64,6 +66,26 @@ class SourceAttribution:
 
 
 @dataclass(slots=True)
+class ReviewState:
+    status: str = "new"
+    review_notes: str | None = None
+    reviewed_at: str | None = None
+    reviewed_by: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "ReviewState":
+        return cls(
+            status=str(data.get("status", "new")),
+            review_notes=data.get("review_notes"),
+            reviewed_at=data.get("reviewed_at"),
+            reviewed_by=data.get("reviewed_by"),
+        )
+
+
+@dataclass(slots=True)
 class AppResult:
     name: str
     urls: list[str]
@@ -83,6 +105,8 @@ class AppResult:
     last_seen: str | None = None
     status: str = "new"
     review_notes: str | None = None
+    reviewed_at: str | None = None
+    reviewed_by: str | None = None
 
     def __hash__(self) -> int:
         return hash(self.identity_key())
@@ -97,6 +121,10 @@ class AppResult:
             return ("package", self.package_id.casefold())
         primary = self.urls[0] if self.urls else ""
         return (self.name.casefold(), primary.casefold())
+
+    def identity_key_str(self) -> str:
+        key = self.identity_key()
+        return f"{key[0]}::{key[1]}"
 
     def merge(self, other: "AppResult") -> "AppResult":
         merged_urls = sorted(set([*self.urls, *other.urls]))
@@ -131,6 +159,24 @@ class AppResult:
             last_seen=other.last_seen or self.last_seen,
             status=self.status,
             review_notes=self.review_notes or other.review_notes,
+            reviewed_at=self.reviewed_at or other.reviewed_at,
+            reviewed_by=self.reviewed_by or other.reviewed_by,
+        )
+
+    def apply_review_state(self, state: ReviewState | None) -> None:
+        if not state:
+            return
+        self.status = state.status
+        self.review_notes = state.review_notes
+        self.reviewed_at = state.reviewed_at
+        self.reviewed_by = state.reviewed_by
+
+    def to_review_state(self) -> ReviewState:
+        return ReviewState(
+            status=self.status,
+            review_notes=self.review_notes,
+            reviewed_at=self.reviewed_at,
+            reviewed_by=self.reviewed_by,
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -153,6 +199,8 @@ class AppResult:
             "last_seen": self.last_seen,
             "status": self.status,
             "review_notes": self.review_notes,
+            "reviewed_at": self.reviewed_at,
+            "reviewed_by": self.reviewed_by,
         }
 
     @classmethod
@@ -187,4 +235,6 @@ class AppResult:
             last_seen=data.get("last_seen"),
             status=str(data.get("status", "new")),
             review_notes=data.get("review_notes"),
+            reviewed_at=data.get("reviewed_at"),
+            reviewed_by=data.get("reviewed_by"),
         )

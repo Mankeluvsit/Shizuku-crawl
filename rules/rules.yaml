@@ -1,0 +1,8 @@
+scoring:
+  confidence_high_markers:
+    - rikka.shizuku
+    - fdroid-metadata
+    - github-code-search
+  confidence_medium_markers:
+    - shizuku
+    - github-repository-search
