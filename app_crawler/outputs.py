@@ -21,6 +21,9 @@ def entry_to_markdown(app: AppResult) -> str:
         extra.append(f"[release]({app.release_info.release_url})")
     if app.release_info.quality_label and app.release_info.quality_label != 'unknown':
         extra.append(f"artifact-quality: {app.release_info.quality_label}")
+    if app.fork_lineage.parent_full_name:
+        extra.append(f"fork-of: {app.fork_lineage.parent_full_name}")
+        extra.append(f"ahead: {app.fork_lineage.ahead_by}")
     if app.evidence:
         ev = app.evidence[0]
         snippet = ev.detail or ev.reason
@@ -95,6 +98,10 @@ def write_csv(path: Path, apps: list[AppResult]) -> None:
         "release_url",
         "release_tag",
         "artifact_quality",
+        "fork_parent",
+        "fork_ahead_by",
+        "fork_behind_by",
+        "fork_meaningfully_ahead",
         "apk_assets",
         "aab_assets",
         "universal_apk_assets",
@@ -122,6 +129,10 @@ def write_csv(path: Path, apps: list[AppResult]) -> None:
                     "release_url": app.release_info.release_url or "",
                     "release_tag": app.release_info.release_tag or "",
                     "artifact_quality": app.release_info.quality_label,
+                    "fork_parent": app.fork_lineage.parent_full_name or "",
+                    "fork_ahead_by": app.fork_lineage.ahead_by,
+                    "fork_behind_by": app.fork_lineage.behind_by,
+                    "fork_meaningfully_ahead": app.fork_lineage.is_meaningfully_ahead,
                     "apk_assets": ", ".join(app.release_info.apk_assets),
                     "aab_assets": ", ".join(app.release_info.aab_assets),
                     "universal_apk_assets": ", ".join(app.release_info.universal_apk_assets),
@@ -140,6 +151,8 @@ def write_html(path: Path, apps: list[AppResult]) -> None:
         evidence = (app.evidence[0].detail or app.evidence[0].reason) if app.evidence else ""
         apk_assets = ", ".join(app.release_info.apk_assets)
         quality = app.release_info.quality_label
+        fork_parent = app.fork_lineage.parent_full_name or ""
+        fork_line = f"{fork_parent} (ahead {app.fork_lineage.ahead_by}, behind {app.fork_lineage.behind_by})" if fork_parent else ""
         rows.append(
             "<tr "
             f"data-name='{html.escape(app.name.lower())}' "
@@ -154,6 +167,7 @@ def write_html(path: Path, apps: list[AppResult]) -> None:
             f"<td>{'yes' if (app.has_downloads or app.release_info.has_downloads) else 'no'}</td>"
             f"<td>{html.escape(app.release_info.release_tag or '')}</td>"
             f"<td>{html.escape(quality)}</td>"
+            f"<td>{html.escape(fork_line)}</td>"
             f"<td>{html.escape(apk_assets)}</td>"
             f"<td>{html.escape(evidence[:120])}</td>"
             + (f"<td><a href='{html.escape(release)}'>release</a></td>" if release else "<td></td>")
@@ -211,6 +225,7 @@ def write_html(path: Path, apps: list[AppResult]) -> None:
         <th>Downloads</th>
         <th>Release tag</th>
         <th>Artifact quality</th>
+        <th>Fork lineage</th>
         <th>APK assets</th>
         <th>Evidence</th>
         <th>Release</th>
@@ -256,6 +271,7 @@ def write_stats(path: Path, apps: list[AppResult]) -> None:
         "with_downloads": sum(1 for a in apps if a.has_downloads or a.release_info.has_downloads),
         "with_apk_assets": sum(1 for a in apps if a.release_info.apk_assets),
         "with_checksum_assets": sum(1 for a in apps if a.release_info.checksum_assets),
+        "meaningfully_ahead_forks": sum(1 for a in apps if a.fork_lineage.is_meaningfully_ahead),
         "quality_labels": {
             label: sum(1 for a in apps if a.release_info.quality_label == label)
             for label in sorted({a.release_info.quality_label for a in apps} | {'none'})

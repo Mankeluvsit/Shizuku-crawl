@@ -28,6 +28,7 @@ The crawler can:
   - `scan_diff.json`
 - optionally generate **incremental reports** that contain only new or changed entries compared with the prior cached run
 - apply artifact-quality heuristics to release assets such as APK/AAB presence, split-vs-universal hints, and checksum/signature hints
+- annotate GitHub forks with lineage details such as parent repository, branch divergence counts, and whether the fork appears meaningfully ahead of the parent
 
 ---
 
@@ -104,6 +105,18 @@ Release assets are now annotated with simple quality heuristics:
 - a compact quality label shown in outputs
 
 These are heuristics for review, not cryptographic validation.
+
+---
+
+## Fork lineage hints
+
+GitHub fork results now include fork lineage metadata when available:
+
+- parent repository full name
+- ahead/behind counts relative to parent default branch
+- whether the fork looks meaningfully ahead of the parent
+
+These details are shown in outputs to make maintained forks easier to review.
 
 ---
 

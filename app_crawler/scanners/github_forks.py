@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 
 import requests
 
-from ..models import AppResult, MatchEvidence, ReleaseInfo, SourceAttribution
+from ..models import AppResult, ForkLineage, MatchEvidence, ReleaseInfo, SourceAttribution
 from ..release_assets import classify_release_assets
 from .base import BaseScanner
 
@@ -39,6 +39,7 @@ class GithubForksScanner(BaseScanner):
                 continue
             release_info = self._fetch_release_info(full_name)
             parent = self._fetch_parent_name(full_name)
+            lineage = self._fetch_fork_lineage(full_name, parent)
             desc = repo.get("description") or ""
             if parent:
                 desc = (desc + f" | fork of {parent}").strip(" |")
@@ -61,6 +62,7 @@ class GithubForksScanner(BaseScanner):
                     ],
                     sources=[SourceAttribution(scanner=self.name, source_type=self.source_type, trust_level=self.trust_level)],
                     release_info=release_info,
+                    fork_lineage=lineage,
                 )
             )
         return apps
@@ -85,6 +87,25 @@ class GithubForksScanner(BaseScanner):
             return None
         parent = response.json().get("parent") or {}
         return parent.get("full_name")
+
+    def _fetch_fork_lineage(self, full_name: str, parent_full_name: str | None) -> ForkLineage:
+        if not parent_full_name:
+            return ForkLineage()
+        response = self.session.get(
+            f"https://api.github.com/repos/{full_name}/compare/{parent_full_name.split('/')[-1]}...HEAD",
+            timeout=30,
+        )
+        if response.status_code != 200:
+            return ForkLineage(parent_full_name=parent_full_name)
+        data = response.json()
+        ahead_by = int(data.get("ahead_by", 0) or 0)
+        behind_by = int(data.get("behind_by", 0) or 0)
+        return ForkLineage(
+            parent_full_name=parent_full_name,
+            ahead_by=ahead_by,
+            behind_by=behind_by,
+            is_meaningfully_ahead=ahead_by >= 3,
+        )
 
 
 def _parse_datetime(value: str | None) -> datetime | None:

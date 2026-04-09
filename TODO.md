@@ -20,16 +20,17 @@
 - [x] Codeberg scanner
 - [x] Plugin scanner foundation
 - [x] Stronger artifact verification
+- [x] Fork lineage analysis
 
 ## In progress
-- [ ] Fork lineage analysis
+- [ ] More scanner tests
 
 ## Next up
-- [ ] More scanner tests
 - [ ] Better retry/backoff controls
 - [ ] GitLab/Codeberg enrichment improvements
 - [ ] Release quality scoring refinements
+- [ ] Scanner-specific metrics expansion
 
 ## Notes
 - Current repo state includes Phase 1, Phase 2, and partial Phase 3.
-- Phase 3 now includes safer CI automation, incremental reporting, broader source coverage, scanner registration plumbing, and artifact-quality heuristics.
+- Phase 3 now includes safer CI automation, incremental reporting, broader source coverage, scanner registration plumbing, artifact-quality heuristics, and fork lineage reporting.

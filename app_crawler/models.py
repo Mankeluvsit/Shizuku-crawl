@@ -96,6 +96,26 @@ class ReviewState:
 
 
 @dataclass(slots=True)
+class ForkLineage:
+    parent_full_name: str | None = None
+    ahead_by: int = 0
+    behind_by: int = 0
+    is_meaningfully_ahead: bool = False
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "ForkLineage":
+        return cls(
+            parent_full_name=data.get("parent_full_name"),
+            ahead_by=int(data.get("ahead_by", 0) or 0),
+            behind_by=int(data.get("behind_by", 0) or 0),
+            is_meaningfully_ahead=bool(data.get("is_meaningfully_ahead", False)),
+        )
+
+
+@dataclass(slots=True)
 class AppResult:
     name: str
     urls: list[str]
@@ -111,6 +131,7 @@ class AppResult:
     evidence: list[MatchEvidence] = field(default_factory=list)
     sources: list[SourceAttribution] = field(default_factory=list)
     release_info: ReleaseInfo = field(default_factory=ReleaseInfo)
+    fork_lineage: ForkLineage = field(default_factory=ForkLineage)
     first_seen: str | None = None
     last_seen: str | None = None
     status: str = "new"
@@ -149,6 +170,7 @@ class AppResult:
 
         release = self.release_info if self.release_info.has_downloads else other.release_info
         has_downloads = self.has_downloads or other.has_downloads or release.has_downloads
+        lineage = self.fork_lineage if self.fork_lineage.parent_full_name else other.fork_lineage
 
         return AppResult(
             name=self.name if len(self.name) >= len(other.name) else other.name,
@@ -165,6 +187,7 @@ class AppResult:
             evidence=merged_evidence,
             sources=merged_sources,
             release_info=release,
+            fork_lineage=lineage,
             first_seen=self.first_seen or other.first_seen,
             last_seen=other.last_seen or self.last_seen,
             status=self.status,
@@ -205,6 +228,7 @@ class AppResult:
             "evidence": [ev.to_dict() for ev in self.evidence],
             "sources": [src.to_dict() for src in self.sources],
             "release_info": self.release_info.to_dict(),
+            "fork_lineage": self.fork_lineage.to_dict(),
             "first_seen": self.first_seen,
             "last_seen": self.last_seen,
             "status": self.status,
@@ -241,6 +265,7 @@ class AppResult:
             evidence=[MatchEvidence.from_dict(item) for item in data.get("evidence", [])],
             sources=[SourceAttribution.from_dict(item) for item in data.get("sources", [])],
             release_info=ReleaseInfo.from_dict(data.get("release_info", {})),
+            fork_lineage=ForkLineage.from_dict(data.get("fork_lineage", {})),
             first_seen=data.get("first_seen"),
             last_seen=data.get("last_seen"),
             status=str(data.get("status", "new")),
