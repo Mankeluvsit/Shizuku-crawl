@@ -19,6 +19,7 @@ class AppConfig:
     dry_run: bool
     no_cache: bool
     incremental: bool
+    preset: str
     process_count: int
     recent_days: int
     log_level: str
@@ -37,6 +38,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--no-cache", action="store_true")
     parser.add_argument("--incremental", action="store_true", help="Write reports only for new or changed apps compared with the previous cached run")
+    parser.add_argument("--preset", default=os.getenv("SCAN_PRESET", "full"), choices=["full", "quick", "github-only", "fdroid-only", "non-github"], help="Scanner preset selection")
     parser.add_argument("--rules-dir", default="rules")
     parser.add_argument(
         "--process-count",
@@ -62,6 +64,7 @@ def config_from_args(args: argparse.Namespace) -> AppConfig:
         dry_run=args.dry_run,
         no_cache=args.no_cache,
         incremental=args.incremental,
+        preset=str(args.preset),
         process_count=max(1, args.process_count),
         recent_days=max(1, args.recent_days),
         log_level=str(args.log_level).upper(),

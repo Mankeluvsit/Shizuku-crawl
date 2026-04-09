@@ -48,19 +48,32 @@ def _github_forks(config: AppConfig) -> BaseScanner:
 
 
 def get_scanner_factories(config: AppConfig) -> list[ScannerFactory]:
-    factories: list[ScannerFactory] = [
-        _fdroid_primary,
-        _fdroid_izzy,
-        _gitlab,
-        _codeberg,
-    ]
-    if config.github_auth:
-        factories.extend([
-            _github_code,
-            _github_meta,
-            _github_releases,
-            _github_forks,
-        ])
+    preset = config.preset
+    all_factories: dict[str, ScannerFactory] = {
+        'fdroid_primary': _fdroid_primary,
+        'fdroid_izzy': _fdroid_izzy,
+        'gitlab': _gitlab,
+        'codeberg': _codeberg,
+        'github_code': _github_code,
+        'github_meta': _github_meta,
+        'github_releases': _github_releases,
+        'github_forks': _github_forks,
+    }
+
+    if preset == 'fdroid-only':
+        names = ['fdroid_primary', 'fdroid_izzy']
+    elif preset == 'github-only':
+        names = ['github_code', 'github_meta', 'github_releases', 'github_forks']
+    elif preset == 'non-github':
+        names = ['fdroid_primary', 'fdroid_izzy', 'gitlab', 'codeberg']
+    elif preset == 'quick':
+        names = ['fdroid_primary', 'github_meta', 'gitlab']
+    else:
+        names = list(all_factories.keys())
+
+    factories = [all_factories[name] for name in names if name in all_factories]
+    if preset in {'github-only', 'full', 'quick'} and not config.github_auth:
+        factories = [factory for factory in factories if factory not in {_github_code, _github_meta, _github_releases, _github_forks}]
     return factories
 
 

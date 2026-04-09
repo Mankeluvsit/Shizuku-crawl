@@ -33,6 +33,7 @@ The crawler can:
 - enrich GitLab and Codeberg findings with better homepage/tag/release hints when available
 - refine scoring based on artifact quality, fork lead signals, and richer release hints instead of only simple download presence
 - emit scanner-specific metrics such as runtime, item counts, and error state in stats output
+- support scanner presets such as `full`, `quick`, `github-only`, `fdroid-only`, and `non-github`
 
 ---
 
@@ -92,6 +93,18 @@ This mode keeps the full cache, but only writes report outputs for entries that 
 export GITHUB_AUTH="your_token_here"
 python main.py . --json --csv --html
 ```
+
+### Scanner presets
+
+```bash
+python main.py . --preset full
+python main.py . --preset quick
+python main.py . --preset github-only
+python main.py . --preset fdroid-only
+python main.py . --preset non-github
+```
+
+These presets make it easier to control source breadth without manually editing code.
 
 ### Run tests
 
