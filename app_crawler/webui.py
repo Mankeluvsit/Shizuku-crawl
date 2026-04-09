@@ -11,7 +11,7 @@ from .config import AppConfig
 from .models import ReviewState
 
 
-HTML = """<!doctype html>
+HTML = r"""<!doctype html>
 <html>
 <head>
   <meta charset='utf-8'>
