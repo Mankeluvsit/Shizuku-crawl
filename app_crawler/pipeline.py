@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from datetime import UTC, datetime
 from pathlib import Path
+from time import perf_counter
 
 from .cache import Cache
 from .config import AppConfig
@@ -30,21 +31,37 @@ def _dedupe_apps(apps: list[AppResult]) -> list[AppResult]:
     return list(merged.values())
 
 
-def _scan_apps(config: AppConfig) -> list[AppResult]:
+def _scan_apps(config: AppConfig) -> tuple[list[AppResult], dict[str, dict]]:
     scanners = build_scanners(config)
     if not config.github_auth:
         logging.warning("GITHUB_AUTH not set; GitHub scanners will be skipped")
 
     all_apps: list[AppResult] = []
+    scanner_metrics: dict[str, dict] = {}
     for scanner in scanners:
+        started = perf_counter()
         try:
             found = scanner.find_matching_apps()
+            elapsed_ms = round((perf_counter() - started) * 1000, 2)
             logging.info("%s found %d app(s)", scanner.name, len(found))
             all_apps.extend(found)
+            scanner_metrics[scanner.name] = {
+                "items_found": len(found),
+                "elapsed_ms": elapsed_ms,
+                "ok": True,
+                "error": None,
+            }
         except Exception as exc:
+            elapsed_ms = round((perf_counter() - started) * 1000, 2)
             logging.error("scanner %s failed: %s", scanner.name, exc)
+            scanner_metrics[scanner.name] = {
+                "items_found": 0,
+                "elapsed_ms": elapsed_ms,
+                "ok": False,
+                "error": str(exc),
+            }
 
-    return all_apps
+    return all_apps, scanner_metrics
 
 
 def _apply_review_state(apps: list[AppResult], review_state: dict[str, ReviewState]) -> None:
@@ -73,7 +90,7 @@ def run_pipeline(config: AppConfig) -> None:
     previous_apps = [] if config.no_cache else cache.load_all()
     existing_review_state = cache.load_review_state()
 
-    current_apps = _scan_apps(config)
+    current_apps, scanner_metrics = _scan_apps(config)
     current_apps = normalize_apps(current_apps)
     current_apps = apply_aliases(current_apps, rule_set.aliases)
     current_apps = filter_known_apps(current_apps, config.target_path)
@@ -112,7 +129,7 @@ def run_pipeline(config: AppConfig) -> None:
     diff_path = cwd / config.diff_file
 
     write_summary(summary_path, report_apps, config.recent_days)
-    write_stats(stats_path, report_apps)
+    write_stats(stats_path, report_apps, scanner_metrics=scanner_metrics)
     write_diff(diff_path, merged, previous_apps)
 
     if config.write_json:

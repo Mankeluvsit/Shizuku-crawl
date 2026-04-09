@@ -265,7 +265,7 @@ def write_html(path: Path, apps: list[AppResult]) -> None:
     path.write_text(html_doc, encoding="utf-8")
 
 
-def write_stats(path: Path, apps: list[AppResult]) -> None:
+def write_stats(path: Path, apps: list[AppResult], scanner_metrics: dict[str, dict] | None = None) -> None:
     stats = {
         "total": len(apps),
         "with_downloads": sum(1 for a in apps if a.has_downloads or a.release_info.has_downloads),
@@ -280,6 +280,7 @@ def write_stats(path: Path, apps: list[AppResult]) -> None:
             scanner: sum(1 for a in apps if a.scanner == scanner)
             for scanner in sorted({a.scanner for a in apps})
         },
+        "scanner_metrics": scanner_metrics or {},
         "confidence": {
             level: sum(1 for a in apps if a.confidence == level)
             for level in ("high", "medium", "low")

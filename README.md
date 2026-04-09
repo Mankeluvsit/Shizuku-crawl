@@ -32,6 +32,7 @@ The crawler can:
 - use shared retry/backoff handling for network scanners to reduce transient HTTP failures
 - enrich GitLab and Codeberg findings with better homepage/tag/release hints when available
 - refine scoring based on artifact quality, fork lead signals, and richer release hints instead of only simple download presence
+- emit scanner-specific metrics such as runtime, item counts, and error state in stats output
 
 ---
 
@@ -97,6 +98,18 @@ python main.py . --json --csv --html
 ```bash
 pytest -q
 ```
+
+---
+
+## Scanner metrics
+
+`scan_stats.json` now includes scanner-specific metrics such as:
+
+- scanner runtime in milliseconds
+- item counts returned per scanner
+- scanner error state and last error message when a scanner fails
+
+This makes it easier to spot slow or flaky sources in CI and scheduled runs.
 
 ---
 
