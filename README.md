@@ -30,6 +30,7 @@ The crawler can:
 - apply artifact-quality heuristics to release assets such as APK/AAB presence, split-vs-universal hints, and checksum/signature hints
 - annotate GitHub forks with lineage details such as parent repository, branch divergence counts, and whether the fork appears meaningfully ahead of the parent
 - use shared retry/backoff handling for network scanners to reduce transient HTTP failures
+- enrich GitLab and Codeberg findings with better homepage/tag/release hints when available
 
 ---
 
@@ -38,6 +39,7 @@ The crawler can:
 - `main.py` — small entry script
 - `app_crawler/` — main Python package
 - `app_crawler/http.py` — shared HTTP retry/backoff helpers
+- `app_crawler/release_assets.py` — release asset classification heuristics
 - `app_crawler/scanners/registry.py` — scanner registration foundation
 - `rules/` — config-driven ignore/include/alias/scoring files
 - `tests/` — unit tests
@@ -105,6 +107,19 @@ Network scanners now use a shared HTTP session with retries and backoff for tran
 - `500`, `502`, `503`, `504`
 
 This improves reliability for scheduled runs and CI without changing the crawler interface.
+
+---
+
+## GitLab/Codeberg enrichment hints
+
+GitLab and Codeberg findings now try to pull extra metadata when available:
+
+- homepage / external website links
+- release or latest-tag hints
+- detected tag names and updated release timestamps
+- improved description composition when source metadata is sparse
+
+These are lightweight enrichment hints and may vary by public API response quality.
 
 ---
 

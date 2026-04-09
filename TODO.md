@@ -23,15 +23,16 @@
 - [x] Fork lineage analysis
 - [x] More scanner tests
 - [x] Better retry/backoff controls
+- [x] GitLab/Codeberg enrichment improvements
 
 ## In progress
-- [ ] GitLab/Codeberg enrichment improvements
+- [ ] Release quality scoring refinements
 
 ## Next up
-- [ ] Release quality scoring refinements
 - [ ] Scanner-specific metrics expansion
 - [ ] Scanner enable/disable presets
 - [ ] More network failure simulation tests
+- [ ] Web UI / review dashboard
 
 ## Additional recommended features not built yet
 - [ ] Real Web UI / review dashboard
@@ -49,5 +50,5 @@
 
 ## Notes
 - Current repo state includes Phase 1, Phase 2, and partial Phase 3.
-- Phase 3 now includes safer CI automation, incremental reporting, broader source coverage, scanner registration plumbing, artifact-quality heuristics, fork lineage reporting, broader scanner test coverage, and shared retry/backoff behavior for network scanners.
+- Phase 3 now includes safer CI automation, incremental reporting, broader source coverage, scanner registration plumbing, artifact-quality heuristics, fork lineage reporting, broader scanner test coverage, shared retry/backoff behavior for network scanners, and better GitLab/Codeberg metadata enrichment.
 - The generated apps.html report exists, but it is a static report and not the planned real Web UI.
