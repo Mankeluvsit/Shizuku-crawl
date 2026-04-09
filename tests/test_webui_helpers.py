@@ -38,3 +38,9 @@ def test_webui_contains_mobile_friendly_layout_markers():
     assert '@media (max-width: 900px)' in HTML
     assert 'scrollIntoView' in HTML
     assert 'button-row' in HTML
+
+
+def test_webui_contains_translate_markers():
+    assert 'Translate description' in HTML
+    assert 'Original language:' in HTML
+    assert 'translate.google.com' in HTML
