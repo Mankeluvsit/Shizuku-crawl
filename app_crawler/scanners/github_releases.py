@@ -6,6 +6,12 @@ from ..http import build_retry_session
 from ..models import AppResult, MatchEvidence, ReleaseInfo, SourceAttribution
 from ..release_assets import classify_release_assets
 from .base import BaseScanner
+from .discovery import (
+    BROAD_GITHUB_REPO_EXTRA_QUERIES,
+    STRICT_GITHUB_REPO_QUERIES,
+    expand_queries,
+    paginated_search_items,
+)
 
 
 class GithubReleasesScanner(BaseScanner):
@@ -13,53 +19,57 @@ class GithubReleasesScanner(BaseScanner):
     source_type = "github_release"
     trust_level = "high"
 
-    def __init__(self, token: str, process_count: int = 4):
+    def __init__(self, token: str, process_count: int = 4, discovery_mode: str = 'strict', search_pages: int = 1):
         self.token = token
         self.process_count = process_count
+        self.discovery_mode = discovery_mode
+        self.search_pages = max(1, search_pages)
         self.session = build_retry_session()
         self.session.headers.update({"Authorization": f"token {token}", "Accept": "application/vnd.github+json"})
 
     def find_matching_apps(self) -> list[AppResult]:
-        response = self.session.get(
-            "https://api.github.com/search/repositories",
-            params={"q": "shizuku in:name,description,readme", "sort": "updated", "per_page": 20},
-            timeout=30,
-        )
-        response.raise_for_status()
-        items = response.json().get("items", [])
-
+        queries = expand_queries(self.discovery_mode, STRICT_GITHUB_REPO_QUERIES, BROAD_GITHUB_REPO_EXTRA_QUERIES)
         apps: list[AppResult] = []
-        for repo in items:
-            full_name = repo.get("full_name", "")
-            if not full_name:
-                continue
-            release_info = self._fetch_release_info(full_name)
-            if not release_info.release_url:
-                continue
-            html_url = repo.get("html_url")
-            if not html_url:
-                continue
-            apps.append(
-                AppResult(
-                    name=repo.get("name", "unknown"),
-                    urls=[html_url],
-                    scanner=self.name,
-                    desc=repo.get("description"),
-                    last_updated=_parse_datetime(repo.get("updated_at")),
-                    has_downloads=release_info.has_downloads,
-                    match_reasons=["Matched GitHub releases for Shizuku-related repository"],
-                    evidence=[
-                        MatchEvidence(
-                            source=self.name,
-                            reason="github-release-scan",
-                            detail=full_name,
-                            file_path="releases/latest",
-                        )
-                    ],
-                    sources=[SourceAttribution(scanner=self.name, source_type=self.source_type, trust_level=self.trust_level)],
-                    release_info=release_info,
-                )
+        for query in queries:
+            items = paginated_search_items(
+                self.session,
+                "https://api.github.com/search/repositories",
+                query=query,
+                per_page=20,
+                pages=self.search_pages,
+                timeout=30,
             )
+            for repo in items:
+                full_name = repo.get("full_name", "")
+                if not full_name:
+                    continue
+                release_info = self._fetch_release_info(full_name)
+                if not release_info.release_url:
+                    continue
+                html_url = repo.get("html_url")
+                if not html_url:
+                    continue
+                apps.append(
+                    AppResult(
+                        name=repo.get("name", "unknown"),
+                        urls=[html_url],
+                        scanner=self.name,
+                        desc=repo.get("description"),
+                        last_updated=_parse_datetime(repo.get("updated_at")),
+                        has_downloads=release_info.has_downloads,
+                        match_reasons=[f"Matched GitHub releases query: {query}"],
+                        evidence=[
+                            MatchEvidence(
+                                source=self.name,
+                                reason="github-release-scan",
+                                detail=f"{query} :: {full_name}",
+                                file_path="releases/latest",
+                            )
+                        ],
+                        sources=[SourceAttribution(scanner=self.name, source_type=self.source_type, trust_level=self.trust_level)],
+                        release_info=release_info,
+                    )
+                )
         return apps
 
     def _fetch_release_info(self, full_name: str) -> ReleaseInfo:

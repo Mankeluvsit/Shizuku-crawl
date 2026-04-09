@@ -32,15 +32,30 @@ def _codeberg(_: AppConfig) -> BaseScanner:
 
 
 def _github_code(config: AppConfig) -> BaseScanner:
-    return GithubCodeScanner(config.github_auth or "", process_count=config.process_count)
+    return GithubCodeScanner(
+        config.github_auth or "",
+        process_count=config.process_count,
+        discovery_mode=config.discovery_mode,
+        search_pages=config.search_pages,
+    )
 
 
 def _github_meta(config: AppConfig) -> BaseScanner:
-    return GithubMetaScanner(config.github_auth or "", process_count=config.process_count)
+    return GithubMetaScanner(
+        config.github_auth or "",
+        process_count=config.process_count,
+        discovery_mode=config.discovery_mode,
+        search_pages=config.search_pages,
+    )
 
 
 def _github_releases(config: AppConfig) -> BaseScanner:
-    return GithubReleasesScanner(config.github_auth or "", process_count=config.process_count)
+    return GithubReleasesScanner(
+        config.github_auth or "",
+        process_count=config.process_count,
+        discovery_mode=config.discovery_mode,
+        search_pages=config.search_pages,
+    )
 
 
 def _github_forks(config: AppConfig) -> BaseScanner:

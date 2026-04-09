@@ -20,6 +20,8 @@ class AppConfig:
     no_cache: bool
     incremental: bool
     preset: str
+    discovery_mode: str = "strict"
+    search_pages: int = 1
     webui: bool = False
     webui_host: str = "127.0.0.1"
     webui_port: int = 8765
@@ -42,6 +44,8 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--no-cache", action="store_true")
     parser.add_argument("--incremental", action="store_true", help="Write reports only for new or changed apps compared with the previous cached run")
     parser.add_argument("--preset", default=os.getenv("SCAN_PRESET", "full"), choices=["full", "quick", "github-only", "fdroid-only", "non-github"], help="Scanner preset selection")
+    parser.add_argument("--discovery-mode", default=os.getenv("DISCOVERY_MODE", "strict"), choices=["strict", "broad"], help="Use strict verified-style discovery or broader recall-oriented discovery")
+    parser.add_argument("--search-pages", type=int, default=int(os.getenv("SEARCH_PAGES", "1")), help="How many result pages to fetch per discovery query")
     parser.add_argument("--webui", action="store_true", help="Start the built-in Web UI review dashboard")
     parser.add_argument("--webui-host", default=os.getenv("WEBUI_HOST", "127.0.0.1"))
     parser.add_argument("--webui-port", type=int, default=int(os.getenv("WEBUI_PORT", "8765")))
@@ -71,6 +75,8 @@ def config_from_args(args: argparse.Namespace) -> AppConfig:
         no_cache=args.no_cache,
         incremental=args.incremental,
         preset=str(args.preset),
+        discovery_mode=str(args.discovery_mode),
+        search_pages=max(1, int(args.search_pages)),
         webui=bool(args.webui),
         webui_host=str(args.webui_host),
         webui_port=int(args.webui_port),

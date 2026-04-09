@@ -5,6 +5,12 @@ from datetime import UTC, datetime
 from ..http import build_retry_session
 from ..models import AppResult, MatchEvidence, ReleaseInfo, SourceAttribution
 from .base import BaseScanner
+from .discovery import (
+    BROAD_GITHUB_CODE_EXTRA_QUERIES,
+    STRICT_GITHUB_CODE_QUERIES,
+    expand_queries,
+    paginated_search_items,
+)
 
 
 class GithubCodeScanner(BaseScanner):
@@ -12,49 +18,52 @@ class GithubCodeScanner(BaseScanner):
     source_type = "github_repo"
     trust_level = "high"
 
-    def __init__(self, token: str, process_count: int = 4):
+    def __init__(self, token: str, process_count: int = 4, discovery_mode: str = 'strict', search_pages: int = 1):
         self.token = token
         self.process_count = process_count
+        self.discovery_mode = discovery_mode
+        self.search_pages = max(1, search_pages)
         self.session = build_retry_session()
         self.session.headers.update({"Authorization": f"token {token}", "Accept": "application/vnd.github+json"})
 
     def find_matching_apps(self) -> list[AppResult]:
-        query = '"rikka.shizuku" language:Java OR language:Kotlin'
-        response = self.session.get(
-            "https://api.github.com/search/code",
-            params={"q": query, "per_page": 20},
-            timeout=30,
-        )
-        response.raise_for_status()
-        items = response.json().get("items", [])
-
+        queries = expand_queries(self.discovery_mode, STRICT_GITHUB_CODE_QUERIES, BROAD_GITHUB_CODE_EXTRA_QUERIES)
         apps: list[AppResult] = []
-        for item in items:
-            repository = item.get("repository", {})
-            html_url = repository.get("html_url")
-            full_name = repository.get("full_name") or ""
-            if not html_url:
-                continue
-            apps.append(
-                AppResult(
-                    name=repository.get("name", full_name.split("/")[-1]),
-                    urls=[html_url],
-                    scanner=self.name,
-                    desc=repository.get("description"),
-                    last_updated=_parse_datetime(repository.get("updated_at")),
-                    match_reasons=["Matched GitHub code search for rikka.shizuku"],
-                    evidence=[
-                        MatchEvidence(
-                            source=self.name,
-                            reason="github-code-search",
-                            detail=item.get("path"),
-                            file_path=item.get("path"),
-                        )
-                    ],
-                    sources=[SourceAttribution(scanner=self.name, source_type=self.source_type, trust_level=self.trust_level)],
-                    release_info=ReleaseInfo(has_downloads=False),
-                )
+        for query in queries:
+            items = paginated_search_items(
+                self.session,
+                "https://api.github.com/search/code",
+                query=query,
+                per_page=20,
+                pages=self.search_pages,
+                timeout=30,
             )
+            for item in items:
+                repository = item.get("repository", {})
+                html_url = repository.get("html_url")
+                full_name = repository.get("full_name") or ""
+                if not html_url:
+                    continue
+                apps.append(
+                    AppResult(
+                        name=repository.get("name", full_name.split("/")[-1]),
+                        urls=[html_url],
+                        scanner=self.name,
+                        desc=repository.get("description"),
+                        last_updated=_parse_datetime(repository.get("updated_at")),
+                        match_reasons=[f"Matched GitHub code search query: {query}"],
+                        evidence=[
+                            MatchEvidence(
+                                source=self.name,
+                                reason="github-code-search",
+                                detail=f"{query} :: {item.get('path')}",
+                                file_path=item.get("path"),
+                            )
+                        ],
+                        sources=[SourceAttribution(scanner=self.name, source_type=self.source_type, trust_level=self.trust_level)],
+                        release_info=ReleaseInfo(has_downloads=False),
+                    )
+                )
         return apps
 
 
