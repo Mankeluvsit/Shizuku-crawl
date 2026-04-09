@@ -34,7 +34,7 @@ The crawler can:
 - refine scoring based on artifact quality, fork lead signals, and richer release hints instead of only simple download presence
 - emit scanner-specific metrics such as runtime, item counts, and error state in stats output
 - support scanner presets such as `full`, `quick`, `github-only`, `fdroid-only`, and `non-github`
-- validate retry behavior with local network-failure simulation tests
+- serve a built-in Web UI for reviewing and editing review state
 
 ---
 
@@ -45,6 +45,7 @@ The crawler can:
 - `app_crawler/http.py` — shared HTTP retry/backoff helpers
 - `app_crawler/release_assets.py` — release asset classification heuristics
 - `app_crawler/scanners/registry.py` — scanner registration foundation
+- `app_crawler/webui.py` — built-in review dashboard server
 - `rules/` — config-driven ignore/include/alias/scoring files
 - `tests/` — unit tests
 - `.github/workflows/run-crawler.yml` — test + scan workflow
@@ -107,11 +108,34 @@ python main.py . --preset non-github
 
 These presets make it easier to control source breadth without manually editing code.
 
+### Start the Web UI
+
+```bash
+python main.py . --webui
+python main.py . --webui --webui-host 0.0.0.0 --webui-port 8765
+```
+
+The Web UI reads from `cache/current_run.json` and writes review updates to `cache/review_state.json`.
+
 ### Run tests
 
 ```bash
 pytest -q
 ```
+
+---
+
+## Web UI
+
+The built-in review dashboard provides:
+
+- search/filter over discovered apps
+- detail view with evidence, scanner, quality, and lineage hints
+- status updates in-browser
+- note editing in-browser
+- writeback to `cache/review_state.json`
+
+The UI is intentionally small and framework-free so it runs anywhere Python runs.
 
 ---
 

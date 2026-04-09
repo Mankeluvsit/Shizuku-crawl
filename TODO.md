@@ -28,14 +28,11 @@
 - [x] Scanner-specific metrics expansion
 - [x] Scanner enable/disable presets
 - [x] More network failure simulation tests
-
-## In progress
-- [ ] Web UI / review dashboard
+- [x] Web UI / review dashboard
 
 ## Additional recommended features not built yet
-- [ ] Real Web UI / review dashboard
 - [ ] Browser-based review actions for confirmed / reviewed / false_positive / archived
-- [ ] In-browser review note editing with writeback to review state
+- [x] In-browser review note editing with writeback to review state
 - [ ] Artifact verification beyond heuristics
 - [ ] Deeper GitLab enrichment (releases, tags, assets, better metadata)
 - [ ] Deeper Codeberg enrichment (releases, tags, assets, better metadata)
@@ -47,6 +44,6 @@
 - [ ] More advanced artifact/installability judgment
 
 ## Notes
-- Current repo state includes Phase 1, Phase 2, and partial Phase 3.
-- Phase 3 now includes safer CI automation, incremental reporting, broader source coverage, scanner registration plumbing, artifact-quality heuristics, fork lineage reporting, broader scanner test coverage, shared retry/backoff behavior for network scanners, better GitLab/Codeberg metadata enrichment, refined quality-aware scoring, per-scanner metrics in stats output, scanner presets, and local retry simulation coverage.
-- The generated apps.html report exists, but it is a static report and not the planned real Web UI.
+- Current repo state includes Phase 1, Phase 2, and Phase 3 core tasks completed.
+- Phase 3 now includes safer CI automation, incremental reporting, broader source coverage, scanner registration plumbing, artifact-quality heuristics, fork lineage reporting, broader scanner test coverage, shared retry/backoff behavior for network scanners, better GitLab/Codeberg metadata enrichment, refined quality-aware scoring, per-scanner metrics in stats output, scanner presets, local retry simulation coverage, and a built-in Web UI.
+- The generated apps.html report still exists for static review, and the Web UI now provides interactive review-state editing backed by cache/review_state.json.
