@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-import requests
-
+from ..http import build_retry_session
 from ..models import AppResult, MatchEvidence, ReleaseInfo, SourceAttribution
 from ..release_assets import classify_release_assets
 from .base import BaseScanner
@@ -17,7 +16,7 @@ class GithubReleasesScanner(BaseScanner):
     def __init__(self, token: str, process_count: int = 4):
         self.token = token
         self.process_count = process_count
-        self.session = requests.Session()
+        self.session = build_retry_session()
         self.session.headers.update({"Authorization": f"token {token}", "Accept": "application/vnd.github+json"})
 
     def find_matching_apps(self) -> list[AppResult]:

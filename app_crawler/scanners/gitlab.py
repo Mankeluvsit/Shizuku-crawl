@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from urllib.parse import quote_plus
 
-import requests
-
+from ..http import build_retry_session
 from ..models import AppResult, MatchEvidence, ReleaseInfo, SourceAttribution
 from .base import BaseScanner
 
@@ -15,7 +13,7 @@ class GitLabScanner(BaseScanner):
     trust_level = "medium"
 
     def __init__(self):
-        self.session = requests.Session()
+        self.session = build_retry_session()
         self.base_url = "https://gitlab.com/api/v4"
 
     def find_matching_apps(self) -> list[AppResult]:

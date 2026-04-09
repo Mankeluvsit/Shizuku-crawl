@@ -22,16 +22,17 @@
 - [x] Stronger artifact verification
 - [x] Fork lineage analysis
 - [x] More scanner tests
+- [x] Better retry/backoff controls
 
 ## In progress
-- [ ] Better retry/backoff controls
+- [ ] GitLab/Codeberg enrichment improvements
 
 ## Next up
-- [ ] GitLab/Codeberg enrichment improvements
 - [ ] Release quality scoring refinements
 - [ ] Scanner-specific metrics expansion
 - [ ] Scanner enable/disable presets
+- [ ] More network failure simulation tests
 
 ## Notes
 - Current repo state includes Phase 1, Phase 2, and partial Phase 3.
-- Phase 3 now includes safer CI automation, incremental reporting, broader source coverage, scanner registration plumbing, artifact-quality heuristics, fork lineage reporting, and broader scanner test coverage.
+- Phase 3 now includes safer CI automation, incremental reporting, broader source coverage, scanner registration plumbing, artifact-quality heuristics, fork lineage reporting, broader scanner test coverage, and shared retry/backoff behavior for network scanners.

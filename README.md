@@ -29,7 +29,7 @@ The crawler can:
 - optionally generate **incremental reports** that contain only new or changed entries compared with the prior cached run
 - apply artifact-quality heuristics to release assets such as APK/AAB presence, split-vs-universal hints, and checksum/signature hints
 - annotate GitHub forks with lineage details such as parent repository, branch divergence counts, and whether the fork appears meaningfully ahead of the parent
-- include broader scanner-level tests to reduce regressions while the source coverage grows
+- use shared retry/backoff handling for network scanners to reduce transient HTTP failures
 
 ---
 
@@ -37,6 +37,7 @@ The crawler can:
 
 - `main.py` — small entry script
 - `app_crawler/` — main Python package
+- `app_crawler/http.py` — shared HTTP retry/backoff helpers
 - `app_crawler/scanners/registry.py` — scanner registration foundation
 - `rules/` — config-driven ignore/include/alias/scoring files
 - `tests/` — unit tests
@@ -93,6 +94,17 @@ python main.py . --json --csv --html
 ```bash
 pytest -q
 ```
+
+---
+
+## Retry/backoff behavior
+
+Network scanners now use a shared HTTP session with retries and backoff for transient failures such as:
+
+- `429 Too Many Requests`
+- `500`, `502`, `503`, `504`
+
+This improves reliability for scheduled runs and CI without changing the crawler interface.
 
 ---
 

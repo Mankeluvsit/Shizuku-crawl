@@ -3,8 +3,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 import xml.etree.ElementTree as ET
 
-import requests
-
+from ..http import build_retry_session
 from ..models import AppResult, MatchEvidence, ReleaseInfo, SourceAttribution
 from .base import BaseScanner
 
@@ -16,9 +15,10 @@ class FDroidScanner(BaseScanner):
 
     def __init__(self, index_url: str):
         self.index_url = index_url
+        self.session = build_retry_session()
 
     def find_matching_apps(self) -> list[AppResult]:
-        response = requests.get(self.index_url, timeout=30)
+        response = self.session.get(self.index_url, timeout=30)
         response.raise_for_status()
         root = ET.fromstring(response.content)
 
