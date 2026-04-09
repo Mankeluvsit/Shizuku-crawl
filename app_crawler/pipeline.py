@@ -69,6 +69,16 @@ def _apply_review_state(apps: list[AppResult], review_state: dict[str, ReviewSta
         app.apply_review_state(review_state.get(app.identity_key_str()))
 
 
+def _filter_incremental(current_apps: list[AppResult], previous_apps: list[AppResult]) -> list[AppResult]:
+    previous_map = {app.identity_key(): app.to_dict() for app in previous_apps}
+    changed: list[AppResult] = []
+    for app in current_apps:
+        previous = previous_map.get(app.identity_key())
+        if previous is None or previous != app.to_dict():
+            changed.append(app)
+    return changed
+
+
 def run_pipeline(config: AppConfig) -> None:
     _setup_logging(config.log_level)
 
@@ -112,23 +122,26 @@ def run_pipeline(config: AppConfig) -> None:
             logging.info("%s -> %s", app.name, app.urls[:1])
         return
 
+    report_apps = _filter_incremental(merged, previous_apps) if config.incremental else merged
+
     summary_path = cwd / config.summary_file
     stats_path = cwd / config.stats_file
     diff_path = cwd / config.diff_file
 
-    write_summary(summary_path, merged, config.recent_days)
-    write_stats(stats_path, merged)
+    write_summary(summary_path, report_apps, config.recent_days)
+    write_stats(stats_path, report_apps)
     write_diff(diff_path, merged, previous_apps)
 
     if config.write_json:
-        write_json(cwd / "apps.json", merged)
+        write_json(cwd / "apps.json", report_apps)
     if config.write_csv:
-        write_csv(cwd / "apps.csv", merged)
+        write_csv(cwd / "apps.csv", report_apps)
     if config.write_html:
-        write_html(cwd / "apps.html", merged)
+        write_html(cwd / "apps.html", report_apps)
 
     cache.save_current_run(merged)
     cache.save_review_state({app.identity_key_str(): app.to_review_state() for app in merged})
 
-    for app in merged:
+    logging.info("Wrote %d app(s) to reports", len(report_apps))
+    for app in report_apps:
         logging.info("%s: %s %s", app.scanner, app.name, app.urls)
