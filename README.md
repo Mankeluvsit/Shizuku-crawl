@@ -14,6 +14,7 @@ The crawler can:
 - scan GitHub repositories and code for likely Shizuku use
 - scan GitLab public projects for Shizuku-related metadata
 - scan Codeberg public repositories for Shizuku-related metadata
+- register scanners through a central scanner registry foundation
 - merge duplicate results deterministically
 - score results by confidence and usefulness using rules
 - persist review state across runs
@@ -33,6 +34,7 @@ The crawler can:
 
 - `main.py` — small entry script
 - `app_crawler/` — main Python package
+- `app_crawler/scanners/registry.py` — scanner registration foundation
 - `rules/` — config-driven ignore/include/alias/scoring files
 - `tests/` — unit tests
 - `.github/workflows/run-crawler.yml` — test + scan workflow

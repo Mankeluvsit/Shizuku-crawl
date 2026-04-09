@@ -6,6 +6,7 @@ from .github_releases import GithubReleasesScanner
 from .github_forks import GithubForksScanner
 from .gitlab import GitLabScanner
 from .codeberg import CodebergScanner
+from .registry import build_scanners, get_scanner_factories
 
 __all__ = [
     "BaseScanner",
@@ -16,4 +17,6 @@ __all__ = [
     "GithubForksScanner",
     "GitLabScanner",
     "CodebergScanner",
+    "build_scanners",
+    "get_scanner_factories",
 ]

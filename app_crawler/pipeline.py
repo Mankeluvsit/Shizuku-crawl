@@ -11,13 +11,7 @@ from .models import AppResult, ReviewState
 from .normalize import normalize_apps
 from .outputs import write_csv, write_diff, write_html, write_json, write_stats, write_summary
 from .rules import apply_aliases, load_rule_set, should_force_include, should_ignore
-from .scanners.fdroid import FDroidScanner
-from .scanners.github_code import GithubCodeScanner
-from .scanners.github_meta import GithubMetaScanner
-from .scanners.github_releases import GithubReleasesScanner
-from .scanners.github_forks import GithubForksScanner
-from .scanners.gitlab import GitLabScanner
-from .scanners.codeberg import CodebergScanner
+from .scanners.registry import build_scanners
 from .scoring import score_apps
 
 
@@ -37,23 +31,8 @@ def _dedupe_apps(apps: list[AppResult]) -> list[AppResult]:
 
 
 def _scan_apps(config: AppConfig) -> list[AppResult]:
-    scanners = [
-        FDroidScanner("https://f-droid.org/repo/index.xml"),
-        FDroidScanner("https://apt.izzysoft.de/fdroid/repo/index.xml"),
-        GitLabScanner(),
-        CodebergScanner(),
-    ]
-
-    if config.github_auth:
-        scanners.extend(
-            [
-                GithubCodeScanner(config.github_auth, process_count=config.process_count),
-                GithubMetaScanner(config.github_auth, process_count=config.process_count),
-                GithubReleasesScanner(config.github_auth, process_count=config.process_count),
-                GithubForksScanner(config.github_auth, process_count=config.process_count),
-            ]
-        )
-    else:
+    scanners = build_scanners(config)
+    if not config.github_auth:
         logging.warning("GITHUB_AUTH not set; GitHub scanners will be skipped")
 
     all_apps: list[AppResult] = []

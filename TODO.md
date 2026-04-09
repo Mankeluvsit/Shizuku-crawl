@@ -18,12 +18,12 @@
 - [x] Phase 3: incremental scan mode
 - [x] GitLab scanner
 - [x] Codeberg scanner
+- [x] Plugin scanner foundation
 
 ## In progress
-- [ ] Plugin scanner foundation
+- [ ] Stronger artifact verification
 
 ## Next up
-- [ ] Stronger artifact verification
 - [ ] Fork lineage analysis
 - [ ] More scanner tests
 - [ ] Better retry/backoff controls
@@ -31,4 +31,4 @@
 
 ## Notes
 - Current repo state includes Phase 1, Phase 2, and partial Phase 3.
-- Phase 3 now includes safer CI automation, incremental reporting, and broader source coverage.
+- Phase 3 now includes safer CI automation, incremental reporting, broader source coverage, and scanner registration plumbing.
