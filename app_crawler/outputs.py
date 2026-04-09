@@ -92,6 +92,7 @@ def write_csv(path: Path, apps: list[AppResult]) -> None:
         "status",
         "release_url",
         "release_tag",
+        "apk_assets",
         "evidence",
     ]
     with path.open("w", encoding="utf-8", newline="") as fh:
@@ -113,6 +114,7 @@ def write_csv(path: Path, apps: list[AppResult]) -> None:
                     "status": app.status,
                     "release_url": app.release_info.release_url or "",
                     "release_tag": app.release_info.release_tag or "",
+                    "apk_assets": ", ".join(app.release_info.apk_assets),
                     "evidence": (app.evidence[0].detail or app.evidence[0].reason) if app.evidence else "",
                 }
             )
@@ -124,14 +126,21 @@ def write_html(path: Path, apps: list[AppResult]) -> None:
         primary_url = app.urls[0] if app.urls else ""
         release = app.release_info.release_url or ""
         evidence = (app.evidence[0].detail or app.evidence[0].reason) if app.evidence else ""
+        apk_assets = ", ".join(app.release_info.apk_assets)
         rows.append(
-            "<tr>"
+            "<tr "
+            f"data-name='{html.escape(app.name.lower())}' "
+            f"data-confidence='{html.escape(app.confidence)}' "
+            f"data-usefulness='{html.escape(app.usefulness)}' "
+            f"data-status='{html.escape(app.status)}'>"
             f"<td><a href='{html.escape(primary_url)}'>{html.escape(app.name)}</a></td>"
+            f"<td>{html.escape(app.scanner)}</td>"
             f"<td>{html.escape(app.confidence)}</td>"
             f"<td>{html.escape(app.usefulness)}</td>"
             f"<td>{html.escape(app.status)}</td>"
             f"<td>{'yes' if (app.has_downloads or app.release_info.has_downloads) else 'no'}</td>"
             f"<td>{html.escape(app.release_info.release_tag or '')}</td>"
+            f"<td>{html.escape(apk_assets)}</td>"
             f"<td>{html.escape(evidence[:120])}</td>"
             + (f"<td><a href='{html.escape(release)}'>release</a></td>" if release else "<td></td>")
             + "</tr>"
@@ -143,22 +152,51 @@ def write_html(path: Path, apps: list[AppResult]) -> None:
   <title>App crawler report</title>
   <style>
     body {{ font-family: sans-serif; margin: 2rem; }}
+    .controls {{ display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }}
+    input, select {{ padding: 0.5rem; }}
     table {{ border-collapse: collapse; width: 100%; }}
-    th, td {{ border: 1px solid #ddd; padding: 0.5rem; text-align: left; }}
-    th {{ background: #f5f5f5; }}
+    th, td {{ border: 1px solid #ddd; padding: 0.5rem; text-align: left; vertical-align: top; }}
+    th {{ background: #f5f5f5; position: sticky; top: 0; }}
+    .muted {{ color: #666; margin-bottom: 1rem; }}
   </style>
 </head>
 <body>
   <h1>App crawler report</h1>
+  <p class='muted'>Search and filter results by confidence, usefulness, and review status.</p>
+  <div class='controls'>
+    <input id='search' placeholder='Search name...'>
+    <select id='confidence'>
+      <option value=''>All confidence</option>
+      <option value='high'>high</option>
+      <option value='medium'>medium</option>
+      <option value='low'>low</option>
+    </select>
+    <select id='usefulness'>
+      <option value=''>All usefulness</option>
+      <option value='high'>high</option>
+      <option value='medium'>medium</option>
+      <option value='low'>low</option>
+    </select>
+    <select id='status'>
+      <option value=''>All status</option>
+      <option value='new'>new</option>
+      <option value='confirmed'>confirmed</option>
+      <option value='reviewed'>reviewed</option>
+      <option value='false_positive'>false_positive</option>
+      <option value='archived'>archived</option>
+    </select>
+  </div>
   <table>
     <thead>
       <tr>
         <th>Name</th>
+        <th>Scanner</th>
         <th>Confidence</th>
         <th>Usefulness</th>
         <th>Status</th>
         <th>Downloads</th>
         <th>Release tag</th>
+        <th>APK assets</th>
         <th>Evidence</th>
         <th>Release</th>
       </tr>
@@ -167,6 +205,30 @@ def write_html(path: Path, apps: list[AppResult]) -> None:
       {''.join(rows)}
     </tbody>
   </table>
+  <script>
+    const search = document.getElementById('search');
+    const confidence = document.getElementById('confidence');
+    const usefulness = document.getElementById('usefulness');
+    const status = document.getElementById('status');
+    const rows = Array.from(document.querySelectorAll('tbody tr'));
+
+    function applyFilters() {{
+      const q = search.value.trim().toLowerCase();
+      const c = confidence.value;
+      const u = usefulness.value;
+      const s = status.value;
+      rows.forEach((row) => {{
+        const okQ = !q || row.dataset.name.includes(q);
+        const okC = !c || row.dataset.confidence === c;
+        const okU = !u || row.dataset.usefulness === u;
+        const okS = !s || row.dataset.status === s;
+        row.style.display = okQ && okC && okU && okS ? '' : 'none';
+      }});
+    }}
+
+    [search, confidence, usefulness, status].forEach(el => el.addEventListener('input', applyFilters));
+    [confidence, usefulness, status].forEach(el => el.addEventListener('change', applyFilters));
+  </script>
 </body>
 </html>
 """
@@ -177,6 +239,11 @@ def write_stats(path: Path, apps: list[AppResult]) -> None:
     stats = {
         "total": len(apps),
         "with_downloads": sum(1 for a in apps if a.has_downloads or a.release_info.has_downloads),
+        "with_apk_assets": sum(1 for a in apps if a.release_info.apk_assets),
+        "scanner_counts": {
+            scanner: sum(1 for a in apps if a.scanner == scanner)
+            for scanner in sorted({a.scanner for a in apps})
+        },
         "confidence": {
             level: sum(1 for a in apps if a.confidence == level)
             for level in ("high", "medium", "low")

@@ -14,6 +14,8 @@ from .rules import apply_aliases, load_rule_set, should_force_include, should_ig
 from .scanners.fdroid import FDroidScanner
 from .scanners.github_code import GithubCodeScanner
 from .scanners.github_meta import GithubMetaScanner
+from .scanners.github_releases import GithubReleasesScanner
+from .scanners.github_forks import GithubForksScanner
 from .scoring import score_apps
 
 
@@ -43,6 +45,8 @@ def _scan_apps(config: AppConfig) -> list[AppResult]:
             [
                 GithubCodeScanner(config.github_auth, process_count=config.process_count),
                 GithubMetaScanner(config.github_auth, process_count=config.process_count),
+                GithubReleasesScanner(config.github_auth, process_count=config.process_count),
+                GithubForksScanner(config.github_auth, process_count=config.process_count),
             ]
         )
     else:

@@ -4,7 +4,7 @@ import re
 from urllib.parse import urlparse, urlunparse
 
 
-PACKAGE_RE = re.compile(r"\b(?:applicationId|package)\s*(?:[=:]\s*)?[\"']([A-Za-z0-9_.]+)[\"']")
+PACKAGE_RE = re.compile(r"\b(?:applicationId|package)\s*[=:]\s*[\"']([A-Za-z0-9_.]+)[\"']")
 
 
 def normalize_url(url: str) -> str:
