@@ -34,6 +34,7 @@ The crawler can:
 - refine scoring based on artifact quality, fork lead signals, and richer release hints instead of only simple download presence
 - emit scanner-specific metrics such as runtime, item counts, and error state in stats output
 - support scanner presets such as `full`, `quick`, `github-only`, `fdroid-only`, and `non-github`
+- validate retry behavior with local network-failure simulation tests
 
 ---
 
@@ -148,6 +149,8 @@ Network scanners now use a shared HTTP session with retries and backoff for tran
 - `500`, `502`, `503`, `504`
 
 This improves reliability for scheduled runs and CI without changing the crawler interface.
+
+The test suite now includes local HTTP-server simulations that return transient `503` and `429` responses before succeeding, so retry behavior is exercised rather than only configured.
 
 ---
 
