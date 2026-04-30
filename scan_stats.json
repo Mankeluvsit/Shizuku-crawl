@@ -1,0 +1,109 @@
+{
+  "total": 241,
+  "with_downloads": 89,
+  "with_apk_assets": 37,
+  "with_checksum_assets": 4,
+  "meaningfully_ahead_forks": 0,
+  "quality_labels": {
+    "assets_only": 5,
+    "installable": 37,
+    "none": 6,
+    "unknown": 193
+  },
+  "scanner_counts": {
+    "fdroid": 47,
+    "github_code": 113,
+    "github_meta": 64,
+    "gitlab": 17
+  },
+  "scanner_metrics": {
+    "fdroid": {
+      "items_found": 34,
+      "elapsed_ms": 1641.96,
+      "ok": true,
+      "error": null,
+      "request_count": 1,
+      "retry_count": 0,
+      "rate_limit_hits": 0,
+      "failed_requests": 0
+    },
+    "gitlab": {
+      "items_found": 20,
+      "elapsed_ms": 5697.61,
+      "ok": true,
+      "error": null,
+      "request_count": 41,
+      "retry_count": 0,
+      "rate_limit_hits": 0,
+      "failed_requests": 0
+    },
+    "codeberg": {
+      "items_found": 0,
+      "elapsed_ms": 7110.75,
+      "ok": true,
+      "error": null,
+      "request_count": 1,
+      "retry_count": 0,
+      "rate_limit_hits": 0,
+      "failed_requests": 0
+    },
+    "github_code": {
+      "items_found": 160,
+      "elapsed_ms": 8136.34,
+      "ok": true,
+      "error": null,
+      "request_count": 8,
+      "retry_count": 0,
+      "rate_limit_hits": 0,
+      "failed_requests": 0
+    },
+    "github_meta": {
+      "items_found": 89,
+      "elapsed_ms": 19489.57,
+      "ok": true,
+      "error": null,
+      "request_count": 94,
+      "retry_count": 0,
+      "rate_limit_hits": 0,
+      "failed_requests": 33
+    },
+    "github_releases": {
+      "items_found": 56,
+      "elapsed_ms": 18827.59,
+      "ok": true,
+      "error": null,
+      "request_count": 94,
+      "retry_count": 0,
+      "rate_limit_hits": 0,
+      "failed_requests": 33
+    },
+    "github_forks": {
+      "items_found": 5,
+      "elapsed_ms": 3510.32,
+      "ok": true,
+      "error": null,
+      "request_count": 16,
+      "retry_count": 0,
+      "rate_limit_hits": 0,
+      "failed_requests": 9
+    }
+  },
+  "confidence": {
+    "high": 174,
+    "medium": 67,
+    "low": 0
+  },
+  "usefulness": {
+    "high": 37,
+    "medium": 102,
+    "low": 102
+  },
+  "statuses": {
+    "new": 241
+  },
+  "evidence_strength": {
+    "strong": 113,
+    "medium": 64,
+    "weak": 64
+  }
+}
