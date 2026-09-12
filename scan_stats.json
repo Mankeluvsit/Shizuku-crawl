@@ -1,0 +1,105 @@
+{
+  "total": 90,
+  "with_downloads": 71,
+  "with_apk_assets": 0,
+  "with_checksum_assets": 0,
+  "meaningfully_ahead_forks": 0,
+  "quality_labels": {
+    "none": 0,
+    "unknown": 90
+  },
+  "scanner_counts": {
+    "fdroid": 71,
+    "gitlab": 19
+  },
+  "scanner_metrics": {
+    "fdroid": {
+      "items_found": 42,
+      "elapsed_ms": 1788.84,
+      "ok": true,
+      "error": null,
+      "request_count": 1,
+      "retry_count": 0,
+      "rate_limit_hits": 0,
+      "failed_requests": 0
+    },
+    "gitlab": {
+      "items_found": 20,
+      "elapsed_ms": 8302.5,
+      "ok": true,
+      "error": null,
+      "request_count": 41,
+      "retry_count": 0,
+      "rate_limit_hits": 0,
+      "failed_requests": 0
+    },
+    "codeberg": {
+      "items_found": 0,
+      "elapsed_ms": 9025.53,
+      "ok": true,
+      "error": null,
+      "request_count": 1,
+      "retry_count": 0,
+      "rate_limit_hits": 0,
+      "failed_requests": 0
+    },
+    "github_code": {
+      "items_found": 0,
+      "elapsed_ms": 35.08,
+      "ok": false,
+      "error": "401 Client Error: Unauthorized for url: https://api.github.com/search/code?q=%22rikka.shizuku%22+language%3AJava&per_page=20&page=1",
+      "request_count": 1,
+      "retry_count": 0,
+      "rate_limit_hits": 0,
+      "failed_requests": 1
+    },
+    "github_meta": {
+      "items_found": 0,
+      "elapsed_ms": 33.64,
+      "ok": false,
+      "error": "401 Client Error: Unauthorized for url: https://api.github.com/search/repositories?q=%22rikka.shizuku%22+in%3Areadme&per_page=20&page=1",
+      "request_count": 1,
+      "retry_count": 0,
+      "rate_limit_hits": 0,
+      "failed_requests": 1
+    },
+    "github_releases": {
+      "items_found": 0,
+      "elapsed_ms": 33.86,
+      "ok": false,
+      "error": "401 Client Error: Unauthorized for url: https://api.github.com/search/repositories?q=%22rikka.shizuku%22+in%3Areadme&per_page=20&page=1",
+      "request_count": 1,
+      "retry_count": 0,
+      "rate_limit_hits": 0,
+      "failed_requests": 1
+    },
+    "github_forks": {
+      "items_found": 0,
+      "elapsed_ms": 38.15,
+      "ok": false,
+      "error": "401 Client Error: Unauthorized for url: https://api.github.com/search/repositories?q=shizuku+fork%3Atrue+in%3Aname%2Cdescription%2Creadme&sort=updated&per_page=20",
+      "request_count": 1,
+      "retry_count": 0,
+      "rate_limit_hits": 0,
+      "failed_requests": 1
+    }
+  },
+  "confidence": {
+    "high": 71,
+    "medium": 19,
+    "low": 0
+  },
+  "usefulness": {
+    "high": 0,
+    "medium": 90,
+    "low": 0
+  },
+  "statuses": {
+    "new": 90
+  },
+  "evidence_strength": {
+    "strong": 0,
+    "medium": 0,
+    "weak": 90
+  }
+}
